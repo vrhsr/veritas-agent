@@ -1,0 +1,60 @@
+# Core LLM / Agent framework
+langgraph>=0.2.0
+langchain>=0.3.0
+langchain-openai>=0.2.0
+langchain-community>=0.3.0
+langsmith>=0.1.0
+openai>=1.0.0
+
+# Retrieval
+faiss-cpu>=1.8.0
+sentence-transformers>=3.0.0
+rank-bm25>=0.2.2
+transformers>=4.40.0
+torch>=2.0.0
+
+# Memory
+redis>=5.0.0
+hiredis>=2.3.0
+
+# Web search
+requests>=2.31.0
+duckduckgo-search>=6.0.0
+
+# Safe calculator
+sympy>=1.12
+
+# API serving
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+sse-starlette>=2.0.0
+pydantic>=2.7.0
+python-multipart>=0.0.9
+
+# Evaluation
+ragas>=0.2.0
+datasets>=2.20.0
+
+# Dashboard
+streamlit>=1.36.0
+plotly>=5.22.0
+pandas>=2.2.0
+
+# Observability
+prometheus-client>=0.20.0
+
+# Data fetching
+arxiv>=2.1.0
+wikipedia>=1.4.0
+beautifulsoup4>=4.12.0
+httpx>=0.27.0
+aiohttp>=3.9.0
+
+# Utilities
+python-dotenv>=1.0.0
+tiktoken>=0.7.0
+numpy>=1.26.0
+tqdm>=4.66.0
+structlog>=24.0.0
+tenacity>=8.3.0
+instructor>=1.3.0

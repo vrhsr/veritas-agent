@@ -1,0 +1,17 @@
+.env
+data/corpus/
+data/faiss_index/
+data/faiss_memory/
+data/bm25_index.pkl
+data/eval/results/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+.DS_Store
+*.log

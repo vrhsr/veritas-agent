@@ -1,0 +1,19 @@
+{"query": "Which payment processor does Meesho use?", "expected_query_type": "simple"}
+{"query": "What is Acme Corp's annual GMV?", "expected_query_type": "simple"}
+{"query": "Who is the account manager for CRED?", "expected_query_type": "simple"}
+{"query": "What is the standard Razorpay MDR for credit cards?", "expected_query_type": "simple"}
+{"query": "Compare Razorpay and Stripe international transaction fees and tell me which one is cheaper for a business doing 60% international revenue.", "expected_query_type": "complex"}
+{"query": "Which of our enterprise clients are currently using Stripe and what is their combined annual processing volume?", "expected_query_type": "complex"}
+{"query": "Which clients are at high churn risk and what are the specific reasons for each?", "expected_query_type": "complex"}
+{"query": "Dunzo is on Stripe paying 2.9% MDR. How much would they save annually if they switched to Razorpay at 1.85%?", "expected_query_type": "complex"}
+{"query": "Which clients have had unresolved support escalations in 2024 and what is the current status?", "expected_query_type": "complex"}
+{"query": "For clients processing above 500 crore annually, what negotiated MDR rates do they currently have with Razorpay?", "expected_query_type": "complex"}
+{"query": "Should BrowserStack use Razorpay or Stripe given that 78% of their revenue is international?", "expected_query_type": "complex"}
+{"query": "What is the effective MDR for Zepto after accounting for their UPI transaction mix and GST input credit?", "expected_query_type": "complex"}
+{"query": "Which clients would benefit most from adding BNPL based on their average ticket size and current processor?", "expected_query_type": "complex"}
+{"query": "Compare Razorpay and Stripe on settlement timelines, chargeback fees, and webhook reliability for an enterprise client.", "expected_query_type": "complex"}
+{"query": "Which clients should we focus on?", "expected_query_type": "ambiguous"}
+{"query": "What are the fees?", "expected_query_type": "ambiguous"}
+{"query": "Is Stripe better?", "expected_query_type": "ambiguous"}
+{"query": "Juspay is complaining about settlement delays. What does our internal record say about their issue and what is Razorpay's current SLA for enterprise settlement?", "expected_query_type": "complex"}
+{"query": "Groww's NACH rejection rate is 6%. What is the industry benchmark and what fix has been proposed?", "expected_query_type": "complex"}

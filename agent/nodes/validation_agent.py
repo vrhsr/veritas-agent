@@ -93,7 +93,7 @@ def validation_agent_node(state: AgentState) -> AgentState:
         "validation_passed": passed,
         "validation_failures": failures,
         "retry_count": retry_count + (0 if passed else 1),
-        "cost_usd": state.get("cost_usd", 0.0) + cost,
+        "cost_inr": state.get("cost_inr", 0.0) + cost,
         "node_latencies": {**state.get("node_latencies", {}), "validation_agent": round(elapsed, 3)},
         "token_usage": {
             **state.get("token_usage", {}),

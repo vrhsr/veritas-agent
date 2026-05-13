@@ -149,7 +149,7 @@ def _default_state(query: str, session_id: str | None = None) -> AgentState:
         final_answer="",
         cited_sources=[],
         relevant_memories=[],
-        cost_usd=0.0,
+        cost_inr=0.0,
         node_latencies={},
         token_usage={},
         error_log=[],
@@ -163,7 +163,7 @@ def run_query(query: str, session_id: str | None = None) -> AgentState:
     initial_state = _default_state(query, session_id)
     logger.info("graph_run_start", query=query[:80], session_id=initial_state["session_id"])
     result = graph.invoke(initial_state)
-    logger.info("graph_run_done", cost_usd=result.get("cost_usd", 0), answer_len=len(result.get("final_answer", "")))
+    logger.info("graph_run_done", cost_inr=result.get("cost_inr", 0), answer_len=len(result.get("final_answer", "")))
     return result
 
 

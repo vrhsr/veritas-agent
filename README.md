@@ -155,7 +155,7 @@ curl http://localhost:8000/health
 | Context Precision | > 0.70 | RAGAS metric |
 | Tool selection accuracy | > 80% | Human labeled 50 queries |
 | p50 End-to-end latency | < 4s | Measured per run |
-| Avg cost per query | < $0.01 | gpt-4o-mini token tracking |
+| Avg cost per query | < ₹0.84 | gpt-4o-mini token tracking |
 
 ## Context Window Budget (8K total)
 
@@ -194,10 +194,10 @@ os.environ["LANGCHAIN_PROJECT"] = "research-assistant"
 
 | Query Type | Pipeline Path | Approx Cost |
 |---|---|---|
-| Simple | Analyzer + Response | ~$0.001 |
-| Complex (no retry) | Full pipeline | ~$0.007 |
-| Complex (with retry) | Full pipeline + 1 retry | ~$0.012 |
-| Ambiguous + clarification | Clarification + full pipeline | ~$0.009 |
+| Simple | Analyzer + Response | ~₹0.08 |
+| Complex (no retry) | Full pipeline | ~₹0.58 |
+| Complex (with retry) | Full pipeline + 1 retry | ~₹1.00 |
+| Ambiguous + clarification | Clarification + full pipeline | ~₹0.75 |
 
 ## Tech Stack
 

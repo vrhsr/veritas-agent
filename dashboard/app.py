@@ -75,7 +75,7 @@ with st.sidebar:
     st.markdown("- Faithfulness > 0.80")
     st.markdown("- Context Precision > 0.70")
     st.markdown("- p50 Latency < 4s")
-    st.markdown("- Avg Cost < $0.01")
+    st.markdown("- Avg Cost < ₹0.84")
 
 
 # ── Load metrics ──────────────────────────────────────────────────────────────
@@ -128,14 +128,14 @@ if live_metrics:
     n_validated = df_live["validation_passed"].sum() if "validation_passed" in df_live else 0
     avg_confidence = df_live["confidence"].mean() if "confidence" in df_live else 0
     avg_latency = df_live["latency_s"].mean() if "latency_s" in df_live else 0
-    avg_cost = df_live["cost_usd"].mean() if "cost_usd" in df_live else 0
+    avg_cost = df_live["cost_inr"].mean() if "cost_inr" in df_live else 0
     avg_retries = df_live["retry_count"].mean() if "retry_count" in df_live else 0
 else:
     n_total = eval_results.get("n_queries", 0)
     n_validated = int(n_total * eval_results.get("validation_pass_rate", 0))
     avg_confidence = 0.0
     avg_latency = eval_results.get("latency_p50_s", 0)
-    avg_cost = eval_results.get("avg_cost_usd", 0)
+    avg_cost = eval_results.get("avg_cost_inr", 0)
     avg_retries = eval_results.get("avg_retries_per_query", 0)
 
 completion_rate = eval_results.get("task_completion_rate", n_validated / max(n_total, 1))
@@ -144,7 +144,7 @@ kpi(col1, "Queries Run", n_total, format_fn=str)
 kpi(col2, "Completion Rate", f"{completion_rate:.1%}", target="85%")
 kpi(col3, "Avg Confidence", f"{avg_confidence:.2f}", target=0.7, format_fn=lambda x: f"{x:.2f}")
 kpi(col4, "p50 Latency", f"{avg_latency:.1f}s")
-kpi(col5, "Avg Cost", f"${avg_cost:.5f}")
+kpi(col5, "Avg Cost", f"₹{avg_cost:.4f}")
 kpi(col6, "Avg Retries", f"{avg_retries:.2f}")
 
 st.markdown("---")
@@ -189,9 +189,9 @@ with tab1:
         st.subheader("Cost & Latency Over Time")
         c3, c4 = st.columns(2)
         with c3:
-            if "cost_usd" in df.columns:
-                fig = px.line(df, x="timestamp", y="cost_usd", color_discrete_sequence=["#22d3ee"])
-                fig.add_hline(y=0.01, line_dash="dash", line_color="#f59e0b", annotation_text="$0.01 target")
+            if "cost_inr" in df.columns:
+                fig = px.line(df, x="timestamp", y="cost_inr", color_discrete_sequence=["#22d3ee"])
+                fig.add_hline(y=0.84, line_dash="dash", line_color="#f59e0b", annotation_text="₹0.84 target")
                 fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font_color="#fafafa")
                 st.plotly_chart(fig, use_container_width=True)
         with c4:
@@ -240,7 +240,7 @@ with tab2:
             c1.metric("Task Completion", f"{eval_results.get('task_completion_rate', 0):.1%}")
             c2.metric("Routing Accuracy", f"{eval_results.get('routing_accuracy', 0):.1%}")
             c3.metric("Validation Pass Rate", f"{eval_results.get('validation_pass_rate', 0):.1%}")
-            c4.metric("Avg Cost/Query", f"${eval_results.get('avg_cost_usd', 0):.5f}")
+            c4.metric("Avg Cost/Query", f"₹{eval_results.get('avg_cost_inr', 0):.4f}")
 
         per_query = eval_results.get("per_query_results", [])
         if per_query:
@@ -311,7 +311,7 @@ with tab4:
                 c1.metric("Query Type", result.get("query_type", ""))
                 c2.metric("Confidence", f"{result.get('confidence', 0):.2f}")
                 c3.metric("Validated", "✅" if result.get("validation_passed") else "❌")
-                c4.metric("Cost", f"${result.get('cost_usd', 0):.5f}")
+                c4.metric("Cost", f"₹{result.get('cost_inr', 0):.4f}")
 
                 if result.get("awaiting_clarification"):
                     st.warning(f"🤔 Clarification needed: {result.get('final_answer', '')}")

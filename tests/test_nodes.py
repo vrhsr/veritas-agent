@@ -35,7 +35,7 @@ def _make_state(**overrides) -> AgentState:
         final_answer="",
         cited_sources=[],
         relevant_memories=[],
-        cost_usd=0.0,
+        cost_inr=0.0,
         node_latencies={},
         token_usage={},
         error_log=[],

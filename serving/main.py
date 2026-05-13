@@ -44,7 +44,7 @@ QUERY_LATENCY = Histogram(
 RETRY_COUNTER = Counter("agent_retries_total", "Total retrieval retries triggered")
 VALIDATION_COUNTER = Counter("agent_validations_total", "Validation outcomes", ["result"])
 COST_HISTOGRAM = Histogram(
-    "agent_cost_usd",
+    "agent_cost_inr",
     "Cost per query in USD",
     buckets=[0.0001, 0.001, 0.005, 0.01, 0.02, 0.05],
 )
@@ -128,7 +128,7 @@ async def query_endpoint(request: QueryRequest):
         query_type = result.get("query_type", "unknown")
         QUERY_COUNTER.labels(query_type=query_type).inc()
         QUERY_LATENCY.observe(elapsed)
-        COST_HISTOGRAM.observe(result.get("cost_usd", 0.0))
+        COST_HISTOGRAM.observe(result.get("cost_inr", 0.0))
         if result.get("retry_count", 0) > 0:
             RETRY_COUNTER.inc(result["retry_count"])
         VALIDATION_COUNTER.labels(
@@ -144,7 +144,7 @@ async def query_endpoint(request: QueryRequest):
             "confidence": result.get("confidence", 0.0),
             "validation_passed": result.get("validation_passed", False),
             "retry_count": result.get("retry_count", 0),
-            "cost_usd": result.get("cost_usd", 0.0),
+            "cost_inr": result.get("cost_inr", 0.0),
             "node_latencies": result.get("node_latencies", {}),
         }
         _metrics_store.append(run_record)
@@ -159,7 +159,7 @@ async def query_endpoint(request: QueryRequest):
                 confidence=0.0,
                 validation_passed=False,
                 retry_count=0,
-                cost_usd=result.get("cost_usd", 0.0),
+                cost_inr=result.get("cost_inr", 0.0),
                 latency_s=round(elapsed, 3),
                 node_latencies=result.get("node_latencies", {}),
                 awaiting_clarification=True,
@@ -169,7 +169,7 @@ async def query_endpoint(request: QueryRequest):
             "api_query_done",
             session_id=session_id,
             latency_s=round(elapsed, 3),
-            cost=format_cost(result.get("cost_usd", 0.0)),
+            cost=format_cost(result.get("cost_inr", 0.0)),
             confidence=result.get("confidence", 0.0),
         )
 
@@ -181,7 +181,7 @@ async def query_endpoint(request: QueryRequest):
             confidence=result.get("confidence", 0.0),
             validation_passed=result.get("validation_passed", False),
             retry_count=result.get("retry_count", 0),
-            cost_usd=result.get("cost_usd", 0.0),
+            cost_inr=result.get("cost_inr", 0.0),
             latency_s=round(elapsed, 3),
             node_latencies=result.get("node_latencies", {}),
             awaiting_clarification=False,
@@ -238,7 +238,7 @@ async def clarify_endpoint(request: ClarificationRequest):
             confidence=result.get("confidence", 0.0),
             validation_passed=result.get("validation_passed", False),
             retry_count=result.get("retry_count", 0),
-            cost_usd=result.get("cost_usd", 0.0),
+            cost_inr=result.get("cost_inr", 0.0),
             latency_s=0.0,
             node_latencies=result.get("node_latencies", {}),
             awaiting_clarification=False,

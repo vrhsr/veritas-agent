@@ -120,7 +120,7 @@ def run_evaluation(max_queries: int = 20) -> dict:
                 "validation_passed": result.get("validation_passed", False),
                 "retry_count": result.get("retry_count", 0),
                 "latency_s": round(elapsed, 3),
-                "cost_usd": result.get("cost_usd", 0.0),
+                "cost_inr": result.get("cost_inr", 0.0),
             })
         except Exception as e:
             print(f"  ERROR: {query[:50]}: {e}")
@@ -145,7 +145,7 @@ def run_evaluation(max_queries: int = 20) -> dict:
         "task_completion_rate": round(completed / n, 4) if n else 0.0,
         "routing_accuracy": round(routing_correct / n, 4) if n else 0.0,
         "validation_pass_rate": round(sum(1 for r in run_records if r["validation_passed"]) / len(run_records), 4) if run_records else 0.0,
-        "avg_cost_usd": round(sum(r["cost_usd"] for r in run_records) / len(run_records), 6) if run_records else 0.0,
+        "avg_cost_inr": round(sum(r["cost_inr"] for r in run_records) / len(run_records), 6) if run_records else 0.0,
         "latency_p50_s": round(latencies[int(len(latencies) * 0.50)], 3) if latencies else 0.0,
         "latency_p90_s": round(latencies[int(len(latencies) * 0.90)], 3) if latencies else 0.0,
         "ragas": ragas_scores,
@@ -155,7 +155,7 @@ def run_evaluation(max_queries: int = 20) -> dict:
     print(f"\nTask Completion: {results['task_completion_rate']:.1%} | "
           f"Routing Accuracy: {results['routing_accuracy']:.1%} | "
           f"p50 latency: {results['latency_p50_s']}s | "
-          f"Avg cost: ${results['avg_cost_usd']:.5f}")
+          f"Avg cost: ₹{results['avg_cost_inr']:.4f}")
     if ragas_scores and "error" not in ragas_scores:
         print(f"Faithfulness: {ragas_scores['faithfulness']} | "
               f"Answer Relevancy: {ragas_scores['answer_relevancy']} | "

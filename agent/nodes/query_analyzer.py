@@ -127,7 +127,7 @@ def query_analyzer_node(state: AgentState) -> AgentState:
         "named_entities": parsed.get("named_entities", []),
         "required_tools": parsed.get("required_tools", ["vector_search", "bm25_search"]),
         "complexity_score": float(parsed.get("complexity_score", 0.5)),
-        "cost_usd": state.get("cost_usd", 0.0) + cost,
+        "cost_inr": state.get("cost_inr", 0.0) + cost,
         "prompt_version": PROMPT_VERSION,
         "node_latencies": {**state.get("node_latencies", {}), "query_analyzer": round(elapsed, 3)},
         "token_usage": {

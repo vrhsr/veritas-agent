@@ -94,19 +94,19 @@ def response_generator_node(state: AgentState) -> AgentState:
     input_tokens = count_tokens(str(messages))
     output_tokens = count_tokens(final_answer)
     cost = estimate_cost(input_tokens, output_tokens)
-    total_cost = state.get("cost_usd", 0.0) + cost
+    total_cost = state.get("cost_inr", 0.0) + cost
 
     logger.info(
         "response_generator_done",
         answer_len=len(final_answer),
-        total_cost_usd=round(total_cost, 6),
+        total_cost_inr=round(total_cost, 6),
         latency_s=round(elapsed, 3),
     )
 
     updates = {
         "final_answer": final_answer,
         "cited_sources": cited_sources,
-        "cost_usd": total_cost,
+        "cost_inr": total_cost,
         "node_latencies": {**state.get("node_latencies", {}), "response_generator": round(elapsed, 3)},
         "token_usage": {
             **state.get("token_usage", {}),

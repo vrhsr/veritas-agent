@@ -27,7 +27,7 @@ class QueryResponse(BaseModel):
     confidence: float = Field(..., ge=0.0, le=1.0)
     validation_passed: bool
     retry_count: int
-    cost_usd: float
+    cost_inr: float
     latency_s: float
     node_latencies: dict
     awaiting_clarification: bool = False

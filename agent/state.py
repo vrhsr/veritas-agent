@@ -49,7 +49,7 @@ class AgentState(TypedDict):
     relevant_memories: List[str]
 
     # ── Observability ─────────────────────────────────────────────────────────
-    cost_usd: float
+    cost_inr: float
     node_latencies: dict          # {node_name: seconds}
     token_usage: dict             # {node_name: {input, output}}
     error_log: List[str]

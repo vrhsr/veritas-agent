@@ -62,7 +62,7 @@ def clarification_agent_node(state: AgentState) -> AgentState:
     updates = {
         "clarification_question": clarification_question,
         "awaiting_clarification": True,
-        "cost_usd": state.get("cost_usd", 0.0) + cost,
+        "cost_inr": state.get("cost_inr", 0.0) + cost,
         "node_latencies": {**state.get("node_latencies", {}), "clarification_agent": round(elapsed, 3)},
         "token_usage": {
             **state.get("token_usage", {}),

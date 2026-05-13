@@ -102,7 +102,7 @@ class TestFullGraphIntegration(unittest.TestCase):
         self.assertGreater(result["confidence"], 0.7)
         self.assertTrue(result["validation_passed"])
         self.assertIn("LoRA", result["final_answer"])
-        self.assertGreater(result["cost_usd"], 0.0)
+        self.assertGreater(result["cost_inr"], 0.0)
         self.assertIn("query_analyzer", result["node_latencies"])
         self.assertIn("retrieval_agent", result["node_latencies"])
         self.assertIn("reasoning_agent", result["node_latencies"])

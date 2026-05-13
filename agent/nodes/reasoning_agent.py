@@ -110,7 +110,7 @@ def reasoning_agent_node(state: AgentState) -> AgentState:
         "gaps": parsed.get("gaps", []),
         "reasoning_output": parsed.get("final_answer", ""),
         "confidence": confidence,
-        "cost_usd": state.get("cost_usd", 0.0) + cost,
+        "cost_inr": state.get("cost_inr", 0.0) + cost,
         "node_latencies": {**state.get("node_latencies", {}), "reasoning_agent": round(elapsed, 3)},
         "token_usage": {
             **state.get("token_usage", {}),

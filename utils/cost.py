@@ -15,17 +15,18 @@ DEFAULT_MODEL = "gpt-4o-mini"
 
 def estimate_cost(input_tokens: int, output_tokens: int, model: str | None = None) -> float:
     """
-    Estimate USD cost for a given number of input/output tokens.
-    Returns cost in USD.
+    Estimate INR cost for a given number of input/output tokens.
+    Returns cost in INR (assuming 1 USD = 84 INR).
     """
     model = model or DEFAULT_MODEL
     prices = PRICING.get(model, PRICING[DEFAULT_MODEL])
-    cost = (input_tokens * prices["input"]) + (output_tokens * prices["output"])
-    return round(cost, 8)
+    cost_usd = (input_tokens * prices["input"]) + (output_tokens * prices["output"])
+    cost_inr = cost_usd * 84.0
+    return round(cost_inr, 8)
 
 
-def format_cost(cost_usd: float) -> str:
+def format_cost(cost_inr: float) -> str:
     """Human-readable cost string."""
-    if cost_usd < 0.001:
-        return f"${cost_usd * 1000:.4f}m"  # millicents
-    return f"${cost_usd:.5f}"
+    if cost_inr < 0.01:
+        return f"₹{cost_inr * 100:.4f}p"  # paise
+    return f"₹{cost_inr:.4f}"

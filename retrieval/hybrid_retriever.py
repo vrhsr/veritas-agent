@@ -27,6 +27,7 @@ from utils.logger import get_logger
 logger = get_logger(__name__)
 
 RERANKER_MODEL = os.getenv("RERANKER_MODEL", "cross-encoder/ms-marco-MiniLM-L-6-v2")
+DISABLE_RERANKER = os.getenv("DISABLE_RERANKER", "false").lower() == "true"
 RRF_K = 60  # Standard RRF constant — calibrated to maximize fusion quality
 DEFAULT_TOP_K = int(os.getenv("TOP_K_RETRIEVAL", "5"))
 CANDIDATE_K = 20  # Number of candidates before reranking
@@ -117,6 +118,12 @@ def hybrid_retrieve(
         return []
 
     # ── Step 3: Cross-encoder Reranking ─────────────────────────────────────
+    if DISABLE_RERANKER:
+        logger.info("cross_encoder_disabled_using_rrf_scores")
+        for doc in candidates:
+            doc["score"] = doc.get("rrf_score", 0.0)
+        return candidates[:top_k]
+
     try:
         cross_encoder = _get_cross_encoder()
         pairs = [(query, doc["text"][:512]) for doc in candidates]

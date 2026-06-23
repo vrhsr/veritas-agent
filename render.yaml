@@ -33,5 +33,7 @@ services:
         value: /app
       - key: LANGCHAIN_TRACING_V2
         value: "false"
+      - key: DISABLE_RERANKER
+        value: "true"
     healthCheckPath: /health
     autoDeploy: true

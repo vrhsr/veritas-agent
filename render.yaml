@@ -28,7 +28,7 @@ services:
       - key: LOG_LEVEL
         value: INFO
       - key: LLM_MODEL
-        value: gpt-4o-mini
+        value: gpt-4o
       - key: PYTHONPATH
         value: /app
       - key: LANGCHAIN_TRACING_V2

@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veritas Agent — Multi-Agent Research Assistant</title>
+    <meta name="description" content="Multi-agent RAG system with hybrid retrieval, confidence-driven validation, and persistent memory.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-primary: #0a0b10;
+            --bg-secondary: #12131a;
+            --bg-card: rgba(22, 24, 35, 0.7);
+            --bg-card-hover: rgba(30, 33, 48, 0.85);
+            --border: rgba(255, 255, 255, 0.06);
+            --border-active: rgba(99, 102, 241, 0.4);
+            --text-primary: #f0f1f5;
+            --text-secondary: #8b8fa3;
+            --text-muted: #5c5f73;
+            --accent-indigo: #6366f1;
+            --accent-cyan: #22d3ee;
+            --accent-emerald: #34d399;
+            --accent-amber: #f59e0b;
+            --accent-rose: #f87171;
+            --accent-purple: #a78bfa;
+            --glow-indigo: rgba(99, 102, 241, 0.15);
+            --glow-cyan: rgba(34, 211, 238, 0.1);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --font-sans: 'Inter', -apple-system, system-ui, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* ── Background grain + gradient ────────────────────────────── */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                radial-gradient(ellipse at 20% 0%, var(--glow-indigo) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 100%, var(--glow-cyan) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── Layout ─────────────────────────────────────────────────── */
+        .container {
+            max-width: 1340px;
+            margin: 0 auto;
+            padding: 0 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── Header ─────────────────────────────────────────────────── */
+        header {
+            padding: 32px 0 8px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 32px;
+        }
+
+        .header-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-icon {
+            width: 44px; height: 44px;
+            background: linear-gradient(135deg, var(--accent-indigo), var(--accent-cyan));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            box-shadow: 0 0 24px var(--glow-indigo);
+        }
+
+        .brand h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-cyan) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand p {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            backdrop-filter: blur(12px);
+        }
+
+        .status-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--accent-emerald);
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        .status-dot.offline { background: var(--accent-rose); animation: none; }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.4); }
+            50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(52, 211, 153, 0); }
+        }
+
+        /* ── Tabs ───────────────────────────────────────────────────── */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            padding: 4px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            margin-bottom: 28px;
+            border: 1px solid var(--border);
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: var(--font-sans);
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.25s ease;
+            white-space: nowrap;
+        }
+
+        .tab:hover { color: var(--text-primary); background: rgba(255,255,255,0.03); }
+
+        .tab.active {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .tab-panel { display: none; animation: fadeIn 0.3s ease; }
+        .tab-panel.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ── Cards ──────────────────────────────────────────────────── */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px;
+            backdrop-filter: blur(16px);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: var(--border-active);
+            box-shadow: 0 4px 24px rgba(99, 102, 241, 0.06);
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title .icon {
+            width: 32px; height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        /* ── Architecture Diagram ──────────────────────────────────── */
+        .arch-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .arch-flow {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            padding: 24px;
+        }
+
+        .arch-row {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .arch-node {
+            padding: 14px 22px;
+            border-radius: var(--radius-sm);
+            font-size: 0.82rem;
+            font-weight: 500;
+            border: 1px solid var(--border);
+            background: var(--bg-secondary);
+            text-align: center;
+            min-width: 150px;
+            transition: all 0.3s ease;
+            cursor: default;
+            position: relative;
+        }
+
+        .arch-node:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+
+        .arch-node .node-label {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 4px;
+        }
+
+        .arch-node.node-query { border-color: rgba(99, 102, 241, 0.3); }
+        .arch-node.node-retrieval { border-color: rgba(34, 211, 238, 0.3); }
+        .arch-node.node-reasoning { border-color: rgba(167, 139, 250, 0.3); }
+        .arch-node.node-validation { border-color: rgba(245, 158, 11, 0.3); }
+        .arch-node.node-response { border-color: rgba(52, 211, 153, 0.3); }
+        .arch-node.node-clarification { border-color: rgba(248, 113, 113, 0.3); }
+        .arch-node.node-memory { border-color: rgba(99, 102, 241, 0.3); }
+
+        .arch-node.active-node {
+            animation: nodeGlow 1.5s ease-in-out infinite;
+        }
+
+        @keyframes nodeGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.2); }
+            50% { box-shadow: 0 0 20px 4px rgba(99, 102, 241, 0.3); }
+        }
+
+        .arch-arrow {
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            opacity: 0.5;
+        }
+
+        .arch-arrow.vertical {
+            transform: rotate(90deg);
+        }
+
+        .arch-meta {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            margin-top: 4px;
+        }
+
+        /* ── Decision Table ──────────────────────────────────────── */
+        .decision-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 0.84rem;
+            margin-top: 12px;
+        }
+
+        .decision-table th {
+            text-align: left;
+            padding: 12px 16px;
+            color: var(--text-muted);
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            letter-spacing: 0.06em;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .decision-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        .decision-table tr:last-child td { border-bottom: none; }
+
+        .decision-table td:first-child {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* ── Tech Stack Grid ──────────────────────────────────────── */
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .tech-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 0.84rem;
+            transition: border-color 0.2s;
+        }
+
+        .tech-item:hover { border-color: var(--border-active); }
+
+        .tech-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .tech-label {
+            color: var(--text-muted);
+            font-size: 0.72rem;
+        }
+
+        /* ── Query Panel ─────────────────────────────────────────── */
+        .query-section {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .query-section { grid-template-columns: 1fr; }
+        }
+
+        .query-input-area {
+            position: relative;
+        }
+
+        .query-input-area textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 18px 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            font-size: 0.92rem;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.3s;
+            line-height: 1.6;
+        }
+
+        .query-input-area textarea:focus {
+            border-color: var(--accent-indigo);
+            box-shadow: 0 0 0 3px var(--glow-indigo);
+        }
+
+        .query-input-area textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        .query-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .btn {
+            padding: 11px 22px;
+            border: none;
+            border-radius: 8px;
+            font-family: var(--font-sans);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-indigo), #818cf8);
+            color: white;
+            box-shadow: 0 2px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-primary:active { transform: translateY(0); }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover { border-color: var(--border-active); color: var(--text-primary); }
+
+        /* ── Preset Queries ──────────────────────────────────────── */
+        .presets-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .presets-panel h3 {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+
+        .preset-btn {
+            padding: 14px 18px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            font-size: 0.82rem;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.25s ease;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .preset-btn:hover {
+            border-color: var(--border-active);
+            background: var(--bg-card-hover);
+            transform: translateX(4px);
+        }
+
+        .preset-tag {
+            padding: 3px 9px;
+            border-radius: 6px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .preset-tag.simple { background: rgba(52, 211, 153, 0.15); color: var(--accent-emerald); }
+        .preset-tag.complex { background: rgba(99, 102, 241, 0.15); color: var(--accent-indigo); }
+        .preset-tag.ambiguous { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); }
+
+        /* ── Result Panel ────────────────────────────────────────── */
+        .result-panel {
+            margin-top: 28px;
+            display: none;
+        }
+
+        .result-panel.visible { display: block; animation: fadeIn 0.4s ease; }
+
+        .result-header {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .result-kpi {
+            padding: 12px 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .result-kpi .kpi-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .result-kpi .kpi-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        .kpi-value.good { color: var(--accent-emerald); }
+        .kpi-value.warn { color: var(--accent-amber); }
+        .kpi-value.bad { color: var(--accent-rose); }
+
+        /* ── Pipeline Visualizer ─────────────────────────────────── */
+        .pipeline {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .pipeline-step {
+            padding: 8px 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .pipeline-step.completed {
+            border-color: rgba(52, 211, 153, 0.3);
+            color: var(--accent-emerald);
+            background: rgba(52, 211, 153, 0.05);
+        }
+
+        .pipeline-step.active {
+            border-color: rgba(99, 102, 241, 0.4);
+            color: var(--accent-indigo);
+            background: rgba(99, 102, 241, 0.08);
+            animation: nodeGlow 1.5s ease-in-out infinite;
+        }
+
+        .pipeline-step.skipped {
+            opacity: 0.35;
+        }
+
+        .pipeline-arrow {
+            color: var(--text-muted);
+            opacity: 0.3;
+            font-size: 0.8rem;
+        }
+
+        .pipeline-time {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            color: var(--text-muted);
+        }
+
+        /* ── Answer ──────────────────────────────────────────────── */
+        .answer-box {
+            padding: 24px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            line-height: 1.8;
+            color: var(--text-primary);
+        }
+
+        .answer-box p { margin-bottom: 12px; }
+        .answer-box p:last-child { margin-bottom: 0; }
+
+        /* ── Sources ─────────────────────────────────────────────── */
+        .sources-panel {
+            margin-top: 16px;
+        }
+
+        .sources-toggle {
+            padding: 10px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-family: var(--font-sans);
+            font-size: 0.82rem;
+            cursor: pointer;
+            width: 100%;
+            text-align: left;
+            transition: border-color 0.2s;
+        }
+
+        .sources-toggle:hover { border-color: var(--border-active); }
+
+        .sources-list {
+            display: none;
+            padding: 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            font-size: 0.82rem;
+        }
+
+        .sources-list.open { display: block; }
+
+        .source-item {
+            padding: 8px 0;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+        }
+
+        .source-item:last-child { border-bottom: none; }
+
+        .source-num {
+            color: var(--accent-indigo);
+            font-weight: 600;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        /* ── Metrics Dashboard ───────────────────────────────────── */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .metric-chart-card {
+            padding: 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+        }
+
+        .metric-chart-card h4 {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 12px;
+        }
+
+        .bar-chart {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .bar-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .bar-label {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            width: 100px;
+            flex-shrink: 0;
+            text-align: right;
+        }
+
+        .bar-track {
+            flex: 1;
+            height: 8px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.6s ease;
+        }
+
+        .bar-value {
+            font-size: 0.75rem;
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+            width: 50px;
+        }
+
+        /* ── Loading spinner ─────────────────────────────────────── */
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-top-color: var(--accent-indigo);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Footer ──────────────────────────────────────────────── */
+        footer {
+            margin-top: 48px;
+            padding: 24px 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.78rem;
+        }
+
+        footer a {
+            color: var(--accent-indigo);
+            text-decoration: none;
+        }
+
+        footer a:hover { text-decoration: underline; }
+
+        /* ── Responsive ──────────────────────────────────────────── */
+        @media (max-width: 768px) {
+            .container { padding: 0 16px; }
+            .header-inner { flex-direction: column; align-items: flex-start; }
+            .tabs { overflow-x: auto; }
+            .arch-row { flex-direction: column; }
+            .query-section { grid-template-columns: 1fr; }
+        }
+
+        /* ── Scrollbar ───────────────────────────────────────────── */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
+
+        /* ── Confidence routing table  ───────────────────────────── */
+        .routing-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 16px;
+        }
+        @media (max-width: 768px) { .routing-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ── Header ──────────────────────────────────────────── -->
+        <header>
+            <div class="header-inner">
+                <div class="brand">
+                    <div class="brand-icon">🔬</div>
+                    <div>
+                        <h1>Veritas Agent</h1>
+                        <p>Multi-Agent Research Assistant • LangGraph + RAG</p>
+                    </div>
+                </div>
+                <div class="status-badge">
+                    <div class="status-dot" id="statusDot"></div>
+                    <span id="statusText">Checking...</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- ── Tabs ────────────────────────────────────────────── -->
+        <div class="tabs" role="tablist">
+            <button class="tab active" data-tab="architecture" role="tab">🏗️ Architecture</button>
+            <button class="tab" data-tab="demo" role="tab">⚡ Live Demo</button>
+            <button class="tab" data-tab="metrics" role="tab">📊 Metrics</button>
+            <button class="tab" data-tab="tech" role="tab">🛠️ Tech Stack</button>
+        </div>
+
+        <!-- ════════════════════════════════════════════════════════
+             TAB 1: ARCHITECTURE
+             ════════════════════════════════════════════════════════ -->
+        <div class="tab-panel active" id="tab-architecture">
+            <div class="arch-grid">
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon" style="background:rgba(99,102,241,0.15);">🔀</span>
+                        Agent Graph — 7 Specialized Nodes
+                    </div>
+                    <div class="arch-flow" id="archDiagram">
+                        <!-- Row 1: Entry -->
+                        <div class="arch-row">
+                            <div class="arch-node node-query" id="node-input">
+                                <div class="node-label">Input</div>
+                                User Query
+                            </div>
+                        </div>
+                        <div class="arch-arrow vertical">↓</div>
+
+                        <!-- Row 2: Memory + Analyzer -->
+                        <div class="arch-row">
+                            <div class="arch-node node-memory" id="node-memory-loader">
+                                <div class="node-label">Node 0</div>
+                                Memory Loader
+                                <div class="arch-meta">Redis + FAISS recall</div>
+                            </div>
+                            <div class="arch-arrow">→</div>
+                            <div class="arch-node node-query" id="node-analyzer">
+                                <div class="node-label">Node 1</div>
+                                Query Analyzer
+                                <div class="arch-meta">Classify: simple / complex / ambiguous</div>
+                            </div>
+                        </div>
+                        <div class="arch-arrow vertical">↓</div>
+
+                        <!-- Row 3: Retrieval -->
+                        <div class="arch-row">
+                            <div class="arch-node node-clarification" id="node-clarification">
+                                <div class="node-label">Node 6</div>
+                                Clarification
+                                <div class="arch-meta">← ambiguous queries</div>
+                            </div>
+                            <div class="arch-arrow">↔</div>
+                            <div class="arch-node node-retrieval" id="node-retrieval">
+                                <div class="node-label">Node 2</div>
+                                Retrieval Agent
+                                <div class="arch-meta">BM25 + FAISS → RRF → Cross-encoder</div>
+                            </div>
+                        </div>
+                        <div class="arch-arrow vertical">↓</div>
+
+                        <!-- Row 4: Reasoning -->
+                        <div class="arch-row">
+                            <div class="arch-node node-reasoning" id="node-reasoning">
+                                <div class="node-label">Node 3</div>
+                                Reasoning Agent
+                                <div class="arch-meta">Decompose → Answer → Gap detect → Confidence</div>
+                            </div>
+                        </div>
+                        <div class="arch-arrow vertical">↓</div>
+
+                        <!-- Row 5: Validation -->
+                        <div class="arch-row">
+                            <div class="arch-node node-validation" id="node-validation">
+                                <div class="node-label">Node 4</div>
+                                Validation Agent
+                                <div class="arch-meta">Grounding + Consistency + Completeness</div>
+                            </div>
+                        </div>
+                        <div class="arch-arrow vertical">↓</div>
+
+                        <!-- Row 6: Response + Memory -->
+                        <div class="arch-row">
+                            <div class="arch-node node-response" id="node-response">
+                                <div class="node-label">Node 5</div>
+                                Response Generator
+                                <div class="arch-meta">Cite sources + format + stream</div>
+                            </div>
+                            <div class="arch-arrow">→</div>
+                            <div class="arch-node node-memory" id="node-memory-save">
+                                <div class="node-label">Node 7</div>
+                                Memory Manager
+                                <div class="arch-meta">Redis (short) + FAISS (long)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Decision Table -->
+                <div class="routing-grid">
+                    <div class="card">
+                        <div class="card-title">
+                            <span class="icon" style="background:rgba(245,158,11,0.15);">📐</span>
+                            Confidence Routing
+                        </div>
+                        <table class="decision-table">
+                            <thead>
+                                <tr><th>Score</th><th>Action</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td style="color:var(--accent-emerald);">≥ 0.70</td><td>→ Validation Agent</td></tr>
+                                <tr><td style="color:var(--accent-amber);">0.50 – 0.69</td><td>→ Retry retrieval (max 2)</td></tr>
+                                <tr><td style="color:var(--accent-rose);">< 0.50</td><td>→ Clarification Agent</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">
+                            <span class="icon" style="background:rgba(167,139,250,0.15);">🧠</span>
+                            Key Design Decisions
+                        </div>
+                        <table class="decision-table">
+                            <thead>
+                                <tr><th>Decision</th><th>Why</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Hybrid BM25+FAISS</td><td>Keyword + semantic; RRF fusion + cross-encoder rerank</td></tr>
+                                <tr><td>Separate Validator</td><td>Avoids self-validation confirmation bias</td></tr>
+                                <tr><td>LangGraph over chains</td><td>Supports retry cycles via conditional edges</td></tr>
+                                <tr><td>Sympy calculator</td><td>Safe math without eval() code injection</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ════════════════════════════════════════════════════════
+             TAB 2: LIVE DEMO
+             ════════════════════════════════════════════════════════ -->
+        <div class="tab-panel" id="tab-demo">
+            <div class="query-section">
+                <!-- Query Input -->
+                <div>
+                    <div class="card">
+                        <div class="card-title">
+                            <span class="icon" style="background:rgba(34,211,238,0.15);">💬</span>
+                            Query the Agent
+                        </div>
+                        <div class="query-input-area">
+                            <textarea id="queryInput" placeholder="Ask a research question... e.g. 'How does LoRA reduce memory compared to full fine-tuning?'"></textarea>
+                            <div class="query-actions">
+                                <button class="btn btn-primary" id="runQueryBtn" onclick="runQuery()">
+                                    ▶ Run Query
+                                </button>
+                                <button class="btn btn-secondary" onclick="clearResult()">
+                                    ✕ Clear
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Results -->
+                    <div class="result-panel" id="resultPanel">
+                        <!-- Pipeline -->
+                        <div class="card" style="margin-top:20px;">
+                            <div class="card-title">
+                                <span class="icon" style="background:rgba(52,211,153,0.15);">🔄</span>
+                                Pipeline Trace
+                            </div>
+                            <div class="pipeline" id="pipelineViz"></div>
+                        </div>
+
+                        <!-- KPIs -->
+                        <div class="result-header" id="resultKpis"></div>
+
+                        <!-- Answer -->
+                        <div class="card">
+                            <div class="card-title">
+                                <span class="icon" style="background:rgba(52,211,153,0.15);">✨</span>
+                                Answer
+                            </div>
+                            <div class="answer-box" id="answerBox"></div>
+                        </div>
+
+                        <!-- Sources -->
+                        <div class="sources-panel" id="sourcesPanel">
+                            <button class="sources-toggle" onclick="toggleSources()">📚 View Sources & Citations</button>
+                            <div class="sources-list" id="sourcesList"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preset Queries Sidebar -->
+                <div class="presets-panel">
+                    <h3>Demo Queries</h3>
+
+                    <button class="preset-btn" onclick="setQuery('What is LoRA?', 'simple')">
+                        <span class="preset-tag simple">Simple</span>
+                        <span>What is LoRA?</span>
+                    </button>
+
+                    <button class="preset-btn" onclick="setQuery('How does LoRA reduce memory consumption compared to full fine-tuning, and what are the trade-offs in terms of model quality?', 'complex')">
+                        <span class="preset-tag complex">Complex</span>
+                        <span>LoRA vs full fine-tuning: memory & quality trade-offs</span>
+                    </button>
+
+                    <button class="preset-btn" onclick="setQuery('Explain chain-of-thought prompting and compare it with self-consistency sampling. Which approach achieves better reasoning accuracy on GSM8K?', 'complex')">
+                        <span class="preset-tag complex">Complex</span>
+                        <span>Chain-of-thought vs self-consistency comparison</span>
+                    </button>
+
+                    <button class="preset-btn" onclick="setQuery('Tell me about the transformer architecture.', 'ambiguous')">
+                        <span class="preset-tag ambiguous">Ambiguous</span>
+                        <span>Tell me about the transformer architecture</span>
+                    </button>
+
+                    <button class="preset-btn" onclick="setQuery('Compare retrieval methods', 'ambiguous')">
+                        <span class="preset-tag ambiguous">Ambiguous</span>
+                        <span>Compare retrieval methods</span>
+                    </button>
+
+                    <button class="preset-btn" onclick="setQuery('What is the square root of 144 plus 25?', 'simple')">
+                        <span class="preset-tag simple">Simple</span>
+                        <span>Math: √144 + 25 (tests calculator tool)</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ════════════════════════════════════════════════════════
+             TAB 3: METRICS
+             ════════════════════════════════════════════════════════ -->
+        <div class="tab-panel" id="tab-metrics">
+            <div class="metrics-grid" id="metricsGrid">
+                <!-- Evaluation Targets -->
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon" style="background:rgba(52,211,153,0.15);">🎯</span>
+                        Evaluation Targets
+                    </div>
+                    <div class="bar-chart">
+                        <div class="bar-row">
+                            <span class="bar-label">Task Completion</span>
+                            <div class="bar-track"><div class="bar-fill" style="width:88%;background:var(--accent-emerald)"></div></div>
+                            <span class="bar-value">> 85%</span>
+                        </div>
+                        <div class="bar-row">
+                            <span class="bar-label">Faithfulness</span>
+                            <div class="bar-track"><div class="bar-fill" style="width:83%;background:var(--accent-emerald)"></div></div>
+                            <span class="bar-value">> 0.80</span>
+                        </div>
+                        <div class="bar-row">
+                            <span class="bar-label">Ctx Precision</span>
+                            <div class="bar-track"><div class="bar-fill" style="width:74%;background:var(--accent-emerald)"></div></div>
+                            <span class="bar-value">> 0.70</span>
+                        </div>
+                        <div class="bar-row">
+                            <span class="bar-label">Tool Accuracy</span>
+                            <div class="bar-track"><div class="bar-fill" style="width:82%;background:var(--accent-emerald)"></div></div>
+                            <span class="bar-value">> 80%</span>
+                        </div>
+                        <div class="bar-row">
+                            <span class="bar-label">p50 Latency</span>
+                            <div class="bar-track"><div class="bar-fill" style="width:65%;background:var(--accent-cyan)"></div></div>
+                            <span class="bar-value">< 4s</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cost Breakdown -->
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon" style="background:rgba(245,158,11,0.15);">💰</span>
+                        Cost per Query (gpt-4o-mini)
+                    </div>
+                    <div class="bar-chart">
+                        <div class="bar-row">
+                            <span class="bar-label">Simple</span>
+                            <div class="bar-track"><div class="bar-fill" style="width:8%;background:var(--accent-emerald)"></div></div>
+                            <span class="bar-value">~₹0.08</span>
+                        </div>
+                        <div class="bar-row">
+                            <span class="bar-label">Complex</span>
+                            <div class="bar-track"><div class="bar-fill" style="width:58%;background:var(--accent-indigo)"></div></div>
+                            <span class="bar-value">~₹0.58</span>
+                        </div>
+                        <div class="bar-row">
+                            <span class="bar-label">+Retry</span>
+                            <div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--accent-amber)"></div></div>
+                            <span class="bar-value">~₹1.00</span>
+                        </div>
+                        <div class="bar-row">
+                            <span class="bar-label">Ambiguous</span>
+                            <div class="bar-track"><div class="bar-fill" style="width:75%;background:var(--accent-purple)"></div></div>
+                            <span class="bar-value">~₹0.75</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Context Window Budget -->
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon" style="background:rgba(99,102,241,0.15);">📏</span>
+                        Context Window Budget (8K)
+                    </div>
+                    <div class="bar-chart">
+                        <div class="bar-row">
+                            <span class="bar-label">System Prompt</span>
+                            <div class="bar-track"><div class="bar-fill" style="width:6.25%;background:var(--accent-indigo)"></div></div>
+                            <span class="bar-value">500</span>
+                        </div>
+                        <div class="bar-row">
+                            <span class="bar-label">Retrieved</span>
+                            <div class="bar-track"><div class="bar-fill" style="width:31.25%;background:var(--accent-cyan)"></div></div>
+                            <span class="bar-value">2,500</span>
+                        </div>
+                        <div class="bar-row">
+                            <span class="bar-label">History</span>
+                            <div class="bar-track"><div class="bar-fill" style="width:18.75%;background:var(--accent-purple)"></div></div>
+                            <span class="bar-value">1,500</span>
+                        </div>
+                        <div class="bar-row">
+                            <span class="bar-label">Memories</span>
+                            <div class="bar-track"><div class="bar-fill" style="width:10%;background:var(--accent-amber)"></div></div>
+                            <span class="bar-value">800</span>
+                        </div>
+                        <div class="bar-row">
+                            <span class="bar-label">Reasoning</span>
+                            <div class="bar-track"><div class="bar-fill" style="width:18.75%;background:var(--accent-emerald)"></div></div>
+                            <span class="bar-value">1,500</span>
+                        </div>
+                        <div class="bar-row">
+                            <span class="bar-label">Buffer</span>
+                            <div class="bar-track"><div class="bar-fill" style="width:8.75%;background:var(--text-muted)"></div></div>
+                            <span class="bar-value">700</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Run History -->
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon" style="background:rgba(34,211,238,0.15);">📈</span>
+                        Live Run History
+                    </div>
+                    <div id="liveRunHistory">
+                        <p style="color:var(--text-muted);font-size:0.84rem;">Run queries in the Live Demo tab to see history here.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ════════════════════════════════════════════════════════
+             TAB 4: TECH STACK
+             ════════════════════════════════════════════════════════ -->
+        <div class="tab-panel" id="tab-tech">
+            <div class="card">
+                <div class="card-title">
+                    <span class="icon" style="background:rgba(167,139,250,0.15);">🛠️</span>
+                    Technology Stack
+                </div>
+                <div class="tech-grid">
+                    <div class="tech-item">
+                        <div class="tech-dot" style="background:var(--accent-indigo)"></div>
+                        <div><strong>LangGraph</strong><div class="tech-label">Agent orchestration with typed state</div></div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-dot" style="background:var(--accent-emerald)"></div>
+                        <div><strong>LangChain + OpenAI</strong><div class="tech-label">LLM calls (gpt-4o-mini)</div></div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-dot" style="background:var(--accent-cyan)"></div>
+                        <div><strong>FAISS</strong><div class="tech-label">Dense vector store for corpus + memory</div></div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-dot" style="background:var(--accent-amber)"></div>
+                        <div><strong>rank-bm25</strong><div class="tech-label">Sparse keyword retrieval (BM25Okapi)</div></div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-dot" style="background:var(--accent-purple)"></div>
+                        <div><strong>sentence-transformers</strong><div class="tech-label">Embeddings (all-MiniLM-L6-v2)</div></div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-dot" style="background:var(--accent-rose)"></div>
+                        <div><strong>Cross-encoder</strong><div class="tech-label">ms-marco-MiniLM-L-6-v2 reranking</div></div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-dot" style="background:var(--accent-rose)"></div>
+                        <div><strong>Redis</strong><div class="tech-label">Short-term session memory (TTL 24h)</div></div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-dot" style="background:var(--accent-emerald)"></div>
+                        <div><strong>FastAPI + SSE</strong><div class="tech-label">REST + streaming API</div></div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-dot" style="background:var(--accent-indigo)"></div>
+                        <div><strong>Streamlit + Plotly</strong><div class="tech-label">Live metrics dashboard</div></div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-dot" style="background:var(--accent-amber)"></div>
+                        <div><strong>RAGAS</strong><div class="tech-label">Automated RAG evaluation</div></div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-dot" style="background:var(--accent-cyan)"></div>
+                        <div><strong>Prometheus</strong><div class="tech-label">Metrics endpoint (/metrics)</div></div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-dot" style="background:var(--accent-purple)"></div>
+                        <div><strong>Docker Compose</strong><div class="tech-label">Containerized deployment</div></div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-dot" style="background:var(--accent-emerald)"></div>
+                        <div><strong>LangSmith</strong><div class="tech-label">Full observability & tracing</div></div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-dot" style="background:var(--accent-indigo)"></div>
+                        <div><strong>sympy</strong><div class="tech-label">Safe math calculator (no eval)</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Project Structure -->
+            <div class="card" style="margin-top:20px;">
+                <div class="card-title">
+                    <span class="icon" style="background:rgba(99,102,241,0.15);">📁</span>
+                    Project Structure
+                </div>
+                <pre style="font-family:var(--font-mono);font-size:0.8rem;color:var(--text-secondary);line-height:1.8;overflow-x:auto;padding:16px;background:var(--bg-primary);border-radius:8px;border:1px solid var(--border);">
+├── <span style="color:var(--accent-indigo)">agent/</span>
+│   ├── state.py               <span style="color:var(--text-muted)"># AgentState TypedDict — contract between all nodes</span>
+│   ├── graph.py               <span style="color:var(--text-muted)"># LangGraph definition with conditional edges</span>
+│   └── <span style="color:var(--accent-cyan)">nodes/</span>
+│       ├── query_analyzer.py  <span style="color:var(--text-muted)"># Node 1: classify + route</span>
+│       ├── retrieval_agent.py <span style="color:var(--text-muted)"># Node 2: tool orchestration</span>
+│       ├── reasoning_agent.py <span style="color:var(--text-muted)"># Node 3: decompose + confidence</span>
+│       ├── validation_agent.py<span style="color:var(--text-muted)"># Node 4: grounding checks</span>
+│       ├── response_generator.py <span style="color:var(--text-muted)"># Node 5: format + cite</span>
+│       ├── clarification_agent.py <span style="color:var(--text-muted)"># Node 6: targeted clarification</span>
+│       └── memory_manager.py  <span style="color:var(--text-muted)"># Node 7: Redis + FAISS persistence</span>
+├── <span style="color:var(--accent-cyan)">tools/</span>
+│   ├── bm25_search.py         <span style="color:var(--text-muted)"># BM25Okapi sparse retrieval</span>
+│   ├── vector_search.py       <span style="color:var(--text-muted)"># FAISS dense retrieval</span>
+│   ├── web_search.py          <span style="color:var(--text-muted)"># Serper API + DuckDuckGo fallback</span>
+│   ├── calculator.py          <span style="color:var(--text-muted)"># sympy safe calculator</span>
+│   └── doc_fetcher.py         <span style="color:var(--text-muted)"># URL → chunks</span>
+├── <span style="color:var(--accent-emerald)">retrieval/</span>
+│   └── hybrid_retriever.py    <span style="color:var(--text-muted)"># RRF fusion + cross-encoder reranking</span>
+├── <span style="color:var(--accent-amber)">memory/</span>
+│   ├── redis_memory.py        <span style="color:var(--text-muted)"># Short-term (TTL 24h, last 10 turns)</span>
+│   └── faiss_memory.py        <span style="color:var(--text-muted)"># Long-term (semantic cache, user facts)</span>
+├── <span style="color:var(--accent-purple)">serving/</span>
+│   ├── main.py                <span style="color:var(--text-muted)"># FastAPI endpoints</span>
+│   └── schemas.py             <span style="color:var(--text-muted)"># Pydantic models</span>
+├── <span style="color:var(--accent-rose)">scripts/</span>
+│   ├── download_data.py       <span style="color:var(--text-muted)"># Fetch arXiv + Wikipedia corpus</span>
+│   ├── ingest_corpus.py       <span style="color:var(--text-muted)"># Build BM25 + FAISS indexes</span>
+│   └── evaluate.py            <span style="color:var(--text-muted)"># RAGAS evaluation pipeline</span>
+├── docker-compose.yml         <span style="color:var(--text-muted)"># Redis + API + Dashboard</span>
+└── Dockerfile</pre>
+            </div>
+        </div>
+
+        <!-- ── Footer ──────────────────────────────────────────── -->
+        <footer>
+            <p>Built with LangGraph • FastAPI • FAISS • Redis — <a href="https://github.com/vrhsr/veritas-agent" target="_blank">GitHub</a></p>
+        </footer>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════
+         JAVASCRIPT
+         ════════════════════════════════════════════════════════════ -->
+    <script>
+        // ── Config ────────────────────────────────────────────────
+        const API_BASE = window.location.origin;
+        let runHistory = [];
+
+        // ── Tab Switching ─────────────────────────────────────────
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+            });
+        });
+
+        // ── Health Check ──────────────────────────────────────────
+        async function checkHealth() {
+            const dot = document.getElementById('statusDot');
+            const text = document.getElementById('statusText');
+            try {
+                const res = await fetch(`${API_BASE}/health`, { signal: AbortSignal.timeout(5000) });
+                if (res.ok) {
+                    dot.classList.remove('offline');
+                    text.textContent = 'API Online';
+                } else { throw new Error(); }
+            } catch {
+                dot.classList.add('offline');
+                text.textContent = 'API Offline';
+            }
+        }
+        checkHealth();
+        setInterval(checkHealth, 30000);
+
+        // ── Preset Queries ────────────────────────────────────────
+        function setQuery(query, type) {
+            document.getElementById('queryInput').value = query;
+            // Auto-switch to demo tab if not already there
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelector('[data-tab="demo"]').classList.add('active');
+            document.getElementById('tab-demo').classList.add('active');
+            // Focus
+            document.getElementById('queryInput').focus();
+        }
+
+        // ── Run Query ─────────────────────────────────────────────
+        async function runQuery() {
+            const query = document.getElementById('queryInput').value.trim();
+            if (!query) return;
+
+            const btn = document.getElementById('runQueryBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Processing...';
+
+            // Show pipeline with "processing" state
+            showPipelineProcessing();
+            document.getElementById('resultPanel').classList.add('visible');
+
+            const start = performance.now();
+
+            try {
+                const res = await fetch(`${API_BASE}/query`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query, session_id: 'demo-' + Date.now() })
+                });
+
+                const data = await res.json();
+                const elapsed = ((performance.now() - start) / 1000).toFixed(2);
+
+                displayResult(data, elapsed);
+                addToHistory(query, data, elapsed);
+
+            } catch (err) {
+                document.getElementById('answerBox').innerHTML =
+                    `<p style="color:var(--accent-rose);">⚠️ Error: ${err.message}</p>
+                     <p style="color:var(--text-muted);font-size:0.84rem;">Make sure the API is running. Check the status badge above.</p>`;
+                document.getElementById('pipelineViz').innerHTML = '';
+                document.getElementById('resultKpis').innerHTML = '';
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '▶ Run Query';
+        }
+
+        // ── Display Results ───────────────────────────────────────
+        function showPipelineProcessing() {
+            const steps = ['Memory Loader', 'Query Analyzer', 'Retrieval', 'Reasoning', 'Validation', 'Response', 'Memory Save'];
+            const viz = document.getElementById('pipelineViz');
+            viz.innerHTML = steps.map((s, i) => `
+                <div class="pipeline-step active" id="pipe-${i}">
+                    <span class="spinner" style="width:12px;height:12px;border-width:1.5px;"></span>
+                    ${s}
+                </div>
+                ${i < steps.length - 1 ? '<span class="pipeline-arrow">→</span>' : ''}
+            `).join('');
+        }
+
+        function displayResult(data, elapsed) {
+            // Pipeline visualization
+            const nodeMap = {
+                'memory_loader': 0, 'query_analyzer': 1, 'retrieval_agent': 2,
+                'reasoning_agent': 3, 'validation_agent': 4,
+                'response_generator': 5, 'memory_manager': 6
+            };
+            const steps = ['Memory Loader', 'Query Analyzer', 'Retrieval', 'Reasoning', 'Validation', 'Response', 'Memory Save'];
+            const latencies = data.node_latencies || {};
+            const activeNodes = new Set(Object.keys(latencies));
+
+            const viz = document.getElementById('pipelineViz');
+            viz.innerHTML = steps.map((s, i) => {
+                const nodeKey = Object.keys(nodeMap).find(k => nodeMap[k] === i);
+                const isActive = activeNodes.has(nodeKey);
+                const time = latencies[nodeKey] ? `${latencies[nodeKey].toFixed(2)}s` : '';
+                const cls = isActive ? 'completed' : 'skipped';
+                return `
+                    <div class="pipeline-step ${cls}">
+                        ${isActive ? '✓' : '○'} ${s}
+                        ${time ? `<span class="pipeline-time">${time}</span>` : ''}
+                    </div>
+                    ${i < steps.length - 1 ? '<span class="pipeline-arrow">→</span>' : ''}
+                `;
+            }).join('');
+
+            // KPIs
+            const confColor = data.confidence >= 0.7 ? 'good' : data.confidence >= 0.5 ? 'warn' : 'bad';
+            const kpis = document.getElementById('resultKpis');
+            kpis.innerHTML = `
+                <div class="result-kpi">
+                    <div class="kpi-label">Query Type</div>
+                    <div class="kpi-value" style="color:var(--accent-indigo);font-size:1rem;">${data.query_type || '—'}</div>
+                </div>
+                <div class="result-kpi">
+                    <div class="kpi-label">Confidence</div>
+                    <div class="kpi-value ${confColor}">${(data.confidence || 0).toFixed(2)}</div>
+                </div>
+                <div class="result-kpi">
+                    <div class="kpi-label">Validated</div>
+                    <div class="kpi-value ${data.validation_passed ? 'good' : 'bad'}">${data.validation_passed ? '✓ Pass' : '✗ Fail'}</div>
+                </div>
+                <div class="result-kpi">
+                    <div class="kpi-label">Retries</div>
+                    <div class="kpi-value" style="color:var(--accent-amber)">${data.retry_count || 0}</div>
+                </div>
+                <div class="result-kpi">
+                    <div class="kpi-label">Cost</div>
+                    <div class="kpi-value" style="color:var(--accent-cyan)">₹${(data.cost_inr || 0).toFixed(4)}</div>
+                </div>
+                <div class="result-kpi">
+                    <div class="kpi-label">Latency</div>
+                    <div class="kpi-value" style="color:var(--accent-purple)">${elapsed}s</div>
+                </div>
+            `;
+
+            // Answer
+            const answerBox = document.getElementById('answerBox');
+            if (data.awaiting_clarification) {
+                answerBox.innerHTML = `<p style="color:var(--accent-amber);">🤔 <strong>Clarification Needed:</strong></p><p>${data.final_answer}</p>`;
+            } else {
+                // Convert markdown-like formatting
+                let answer = data.final_answer || 'No answer generated.';
+                answer = answer.replace(/\n/g, '<br>');
+                answerBox.innerHTML = `<p>${answer}</p>`;
+            }
+
+            // Sources
+            const sourcesList = document.getElementById('sourcesList');
+            const sources = data.cited_sources || [];
+            if (sources.length > 0) {
+                document.getElementById('sourcesPanel').style.display = 'block';
+                sourcesList.innerHTML = sources.map((s, i) =>
+                    `<div class="source-item"><span class="source-num">[${i + 1}]</span><span>${s}</span></div>`
+                ).join('');
+            } else {
+                document.getElementById('sourcesPanel').style.display = 'none';
+            }
+
+            // Highlight active architecture nodes
+            highlightArchNodes(activeNodes);
+        }
+
+        function highlightArchNodes(activeNodes) {
+            // Clear all
+            document.querySelectorAll('.arch-node').forEach(n => n.classList.remove('active-node'));
+
+            const mapping = {
+                'memory_loader': 'node-memory-loader',
+                'query_analyzer': 'node-analyzer',
+                'retrieval_agent': 'node-retrieval',
+                'reasoning_agent': 'node-reasoning',
+                'validation_agent': 'node-validation',
+                'response_generator': 'node-response',
+                'memory_manager': 'node-memory-save'
+            };
+
+            activeNodes.forEach(node => {
+                const el = document.getElementById(mapping[node]);
+                if (el) el.classList.add('active-node');
+            });
+        }
+
+        function toggleSources() {
+            document.getElementById('sourcesList').classList.toggle('open');
+        }
+
+        function clearResult() {
+            document.getElementById('resultPanel').classList.remove('visible');
+            document.getElementById('queryInput').value = '';
+            document.querySelectorAll('.arch-node').forEach(n => n.classList.remove('active-node'));
+        }
+
+        // ── Run History ───────────────────────────────────────────
+        function addToHistory(query, data, elapsed) {
+            runHistory.unshift({
+                query: query.substring(0, 60) + (query.length > 60 ? '...' : ''),
+                type: data.query_type,
+                confidence: data.confidence,
+                validated: data.validation_passed,
+                cost: data.cost_inr,
+                latency: elapsed,
+                timestamp: new Date().toLocaleTimeString()
+            });
+
+            updateHistoryPanel();
+        }
+
+        function updateHistoryPanel() {
+            const el = document.getElementById('liveRunHistory');
+            if (runHistory.length === 0) return;
+
+            el.innerHTML = `
+                <table class="decision-table" style="margin-top:0;">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Query</th>
+                            <th>Type</th>
+                            <th>Conf</th>
+                            <th>Valid</th>
+                            <th>Cost</th>
+                            <th>Latency</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${runHistory.slice(0, 10).map(r => `
+                            <tr>
+                                <td style="font-family:var(--font-mono);font-size:0.75rem;">${r.timestamp}</td>
+                                <td>${r.query}</td>
+                                <td><span class="preset-tag ${r.type === 'simple' ? 'simple' : r.type === 'complex' ? 'complex' : 'ambiguous'}">${r.type || '—'}</span></td>
+                                <td style="color:${r.confidence >= 0.7 ? 'var(--accent-emerald)' : r.confidence >= 0.5 ? 'var(--accent-amber)' : 'var(--accent-rose)'}">${(r.confidence || 0).toFixed(2)}</td>
+                                <td>${r.validated ? '✓' : '✗'}</td>
+                                <td style="font-family:var(--font-mono);">₹${(r.cost || 0).toFixed(4)}</td>
+                                <td style="font-family:var(--font-mono);">${r.latency}s</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // ── Keyboard shortcut ─────────────────────────────────────
+        document.getElementById('queryInput')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                runQuery();
+            }
+        });
+    </script>
+</body>
+</html>

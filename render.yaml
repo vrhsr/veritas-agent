@@ -1,0 +1,37 @@
+# Render.com Blueprint
+# https://docs.render.com/blueprint-spec
+
+services:
+  # ── Redis ──────────────────────────────────────────────────────
+  - type: redis
+    name: agent-redis
+    plan: free
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: []  # Allow only internal connections
+
+  # ── FastAPI Agent API ──────────────────────────────────────────
+  - type: web
+    name: veritas-agent
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false  # Prompt user to enter manually
+      - key: REDIS_URL
+        fromService:
+          name: agent-redis
+          type: redis
+          property: connectionString
+      - key: APP_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      - key: LLM_MODEL
+        value: gpt-4o-mini
+      - key: PYTHONPATH
+        value: /app
+      - key: LANGCHAIN_TRACING_V2
+        value: "false"
+    healthCheckPath: /health
+    autoDeploy: true

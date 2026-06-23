@@ -1,8 +1,9 @@
 .env
-data/corpus/
-data/faiss_index/
+# Data: corpus + indexes are committed (small, needed for deploy)
+# data/corpus/        ← tracked for deployment
+# data/faiss_index/   ← tracked for deployment
+# data/bm25_index.pkl ← tracked for deployment
 data/faiss_memory/
-data/bm25_index.pkl
 data/eval/results/
 __pycache__/
 *.pyc

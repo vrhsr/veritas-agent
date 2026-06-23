@@ -19,9 +19,12 @@ import asyncio
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator, Optional
 
+from pathlib import Path
+
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from sse_starlette.sse import EventSourceResponse
 from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 import structlog
@@ -83,8 +86,58 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Serve static files (demo UI)
+_static_dir = Path(__file__).parent / "static"
+if _static_dir.exists():
+    app.mount("/static", StaticFiles(directory=str(_static_dir)), name="static")
+
 
 # ── Endpoints ────────────────────────────────────────────────────────────────
+
+@app.get("/", include_in_schema=False)
+async def root():
+    """Serve the demo UI."""
+    demo_path = _static_dir / "demo.html"
+    if demo_path.exists():
+        return FileResponse(str(demo_path), media_type="text/html")
+    return JSONResponse({"message": "Veritas Agent API", "docs": "/docs"})
+
+
+@app.get("/api/architecture")
+async def architecture():
+    """Return the agent graph topology for the interactive diagram."""
+    return {
+        "nodes": [
+            {"id": "memory_loader", "label": "Memory Loader", "description": "Load Redis history + FAISS long-term memories"},
+            {"id": "query_analyzer", "label": "Query Analyzer", "description": "Classify: simple / complex / ambiguous"},
+            {"id": "retrieval_agent", "label": "Retrieval Agent", "description": "BM25 + FAISS → RRF fusion → Cross-encoder rerank"},
+            {"id": "reasoning_agent", "label": "Reasoning Agent", "description": "Decompose → Answer → Gap detection → Confidence score"},
+            {"id": "validation_agent", "label": "Validation Agent", "description": "Grounding + Consistency + Completeness checks"},
+            {"id": "response_generator", "label": "Response Generator", "description": "Format + cite sources + stream output"},
+            {"id": "clarification_agent", "label": "Clarification Agent", "description": "Generate targeted clarification questions"},
+            {"id": "memory_manager", "label": "Memory Manager", "description": "Persist to Redis (short-term) + FAISS (long-term)"},
+        ],
+        "edges": [
+            {"from": "memory_loader", "to": "query_analyzer", "label": "always"},
+            {"from": "query_analyzer", "to": "retrieval_agent", "label": "simple/complex"},
+            {"from": "query_analyzer", "to": "clarification_agent", "label": "ambiguous"},
+            {"from": "retrieval_agent", "to": "response_generator", "label": "simple"},
+            {"from": "retrieval_agent", "to": "reasoning_agent", "label": "complex"},
+            {"from": "reasoning_agent", "to": "validation_agent", "label": "confidence ≥ 0.7"},
+            {"from": "reasoning_agent", "to": "retrieval_agent", "label": "confidence 0.5-0.69 (retry)"},
+            {"from": "reasoning_agent", "to": "clarification_agent", "label": "confidence < 0.5"},
+            {"from": "validation_agent", "to": "response_generator", "label": "pass"},
+            {"from": "validation_agent", "to": "retrieval_agent", "label": "fail + retry < max"},
+            {"from": "response_generator", "to": "memory_manager", "label": "always"},
+            {"from": "clarification_agent", "to": "memory_manager", "label": "save & pause"},
+        ],
+        "confidence_routing": {
+            "pass": {"threshold": 0.7, "action": "→ Validation Agent"},
+            "retry": {"range": [0.5, 0.69], "action": "→ Retry retrieval (max 2)"},
+            "clarify": {"threshold": 0.5, "action": "→ Clarification Agent"},
+        }
+    }
+
 
 @app.get("/health")
 async def health():

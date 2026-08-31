@@ -249,22 +249,12 @@ docker compose -f config/docker-compose.yml up</div>
   ].join('\n');
 
   function saveFile(filename, content){
-    var viaClaude = (function(){
-      if(!(window.claude && typeof window.claude.use === 'function')) return null;
-      return window.claude.use('downloads').then(function(downloads){
-        if(!downloads) throw new Error('unavailable');
-        return downloads.save({filename: filename, data: content});
-      });
-    })();
-    var fallback = function(){
-      var blob = new Blob([content], {type:'application/json'});
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      a.href = url; a.download = filename;
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
-    };
-    if(viaClaude){ viaClaude.catch(fallback); } else { fallback(); }
+    var blob = new Blob([content], {type:'application/json'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
   }
 
   document.querySelectorAll('[data-download]').forEach(function(btn){

@@ -52,7 +52,7 @@ class TestQueryAnalyzerRouting(unittest.TestCase):
         from agent.nodes.query_analyzer import route_after_query_analyzer
         state = _make_state(query_type="simple")
         result = route_after_query_analyzer(state)
-        self.assertEqual(result, "response_generator")
+        self.assertEqual(result, "retrieval_agent")
 
     def test_route_complex(self):
         from agent.nodes.query_analyzer import route_after_query_analyzer
@@ -82,7 +82,8 @@ class TestReasoningRouting(unittest.TestCase):
         result = route_after_reasoning(state)
         self.assertEqual(result, "validation_agent")
 
-    def test_border_confidence_retries(self):
+    @patch("agent.nodes.reasoning_agent.is_out_of_distribution", return_value=(False, 0.9))
+    def test_border_confidence_retries(self, mock_ood):
         from agent.nodes.reasoning_agent import route_after_reasoning
         state = _make_state(confidence=0.60, retry_count=0)
         result = route_after_reasoning(state)

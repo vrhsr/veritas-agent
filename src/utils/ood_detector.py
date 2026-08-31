@@ -27,7 +27,7 @@ logger = get_logger(__name__)
 
 FAISS_INDEX_PATH = Path(os.getenv("FAISS_INDEX_PATH", "data/faiss_index"))
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
-OOD_THRESHOLD = float(os.getenv("OOD_THRESHOLD", "0.30"))  # Below this = OOD
+OOD_THRESHOLD = float(os.getenv("OOD_THRESHOLD", "0.50"))  # Below this = OOD
 OOD_SAMPLE_K = 1  # Just need top-1 similarity
 
 _ood_index: Optional[faiss.Index] = None

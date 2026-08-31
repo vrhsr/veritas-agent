@@ -115,10 +115,15 @@ def kpi(col, label, value, target=None, good_direction="up", format_fn=str):
     with col:
         delta = ""
         if target is not None:
-            if good_direction == "up":
-                delta = "✅" if value >= target else "⚠️"
-            else:
-                delta = "✅" if value <= target else "⚠️"
+            try:
+                numeric_val = float(value)
+                numeric_target = float(target)
+                if good_direction == "up":
+                    delta = "✅" if numeric_val >= numeric_target else "⚠️"
+                else:
+                    delta = "✅" if numeric_val <= numeric_target else "⚠️"
+            except ValueError:
+                delta = "⚠️"
         st.metric(label=label, value=format_fn(value), delta=delta)
 
 # Use live metrics if available, fall back to eval results
@@ -141,8 +146,8 @@ else:
 completion_rate = eval_results.get("task_completion_rate", n_validated / max(n_total, 1))
 
 kpi(col1, "Queries Run", n_total, format_fn=str)
-kpi(col2, "Completion Rate", f"{completion_rate:.1%}", target="85%")
-kpi(col3, "Avg Confidence", f"{avg_confidence:.2f}", target=0.7, format_fn=lambda x: f"{x:.2f}")
+kpi(col2, "Completion Rate", completion_rate, target=0.85, format_fn=lambda x: f"{x:.1%}")
+kpi(col3, "Avg Confidence", avg_confidence, target=0.7, format_fn=lambda x: f"{x:.2f}")
 kpi(col4, "p50 Latency", f"{avg_latency:.1f}s")
 kpi(col5, "Avg Cost", f"₹{avg_cost:.4f}")
 kpi(col6, "Avg Retries", f"{avg_retries:.2f}")
@@ -290,9 +295,9 @@ with tab4:
 
     col_q, col_s = st.columns([3, 1])
     with col_q:
-        run_btn = st.button("▶ Run Query", type="primary")
+        run_btn = st.button("Run Query", type="primary")
     with col_s:
-        stream_btn = st.button("⚡ Stream Query")
+        stream_btn = st.button("Stream Query")
 
     if run_btn and query_input:
         with st.spinner("Agent thinking..."):

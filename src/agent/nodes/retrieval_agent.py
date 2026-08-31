@@ -12,7 +12,7 @@ This is tracked via the `low_chunk_diversity` flag in state.
 import time
 import os
 from pathlib import Path
-from typing import List
+from typing import List, cast
 
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage
@@ -29,7 +29,8 @@ from utils.cost import estimate_cost
 from utils.token_counter import count_tokens
 
 logger = get_logger(__name__)
-PROMPTS_DIR = Path(os.getenv("PROMPTS_DIR", "prompts/v1"))
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+PROMPTS_DIR = Path(os.getenv("PROMPTS_DIR", PROJECT_ROOT / "prompts/v1"))
 TOP_K = int(os.getenv("TOP_K_RETRIEVAL", "5"))
 TOOL_TIMEOUT = float(os.getenv("TOOL_TIMEOUT_S", "5.0"))
 
@@ -143,7 +144,7 @@ def retrieval_agent_node(state: AgentState) -> AgentState:
         "low_chunk_diversity": not diversity_ok,
         "node_latencies": {**state.get("node_latencies", {}), "retrieval_agent": round(elapsed, 3)},
     }
-    return {**state, **updates}
+    return cast(AgentState, {**state, **updates})
 
 
 def _extract_math_expression(query: str) -> str | None:

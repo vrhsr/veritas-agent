@@ -29,8 +29,8 @@ BM25_INDEX_PATH = Path(os.getenv("BM25_INDEX_PATH", "data/bm25_index.pkl"))
 FAISS_INDEX_PATH = Path(os.getenv("FAISS_INDEX_PATH", "data/faiss_index"))
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
 
-CHUNK_SIZE = 200   # words per chunk
-CHUNK_OVERLAP = 40 # word overlap between chunks
+CHUNK_SIZE = 200   
+CHUNK_OVERLAP = 40 
 EMBEDDING_DIM = 384
 BATCH_SIZE = 64    # Embedding batch size
 

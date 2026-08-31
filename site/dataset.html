@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dataset &amp; Run It — Signal &amp; Gate</title>
+  <meta name="description" content="Browse real corpus examples across all four document types, upload your own file to see it chunked live, and get the exact commands to run Signal & Gate yourself.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Ccircle cx='4' cy='10' r='2.6' fill='%230E6B5A'/%3E%3Ccircle cx='16' cy='4' r='2.6' fill='%23221C13'/%3E%3Ccircle cx='16' cy='16' r='2.6' fill='%23221C13'/%3E%3Cpath d='M6.3 8.7 13.7 5.1M6.3 11.3 13.7 14.9' stroke='%23221C13' stroke-width='1.3'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html">
+      <svg class="mark" viewBox="0 0 20 20" fill="none"><circle cx="4" cy="10" r="2.6" fill="#0E6B5A"/><circle cx="16" cy="4" r="2.6" fill="#221C13"/><circle cx="16" cy="16" r="2.6" fill="#221C13"/><path d="M6.3 8.7 13.7 5.1M6.3 11.3 13.7 14.9" stroke="#221C13" stroke-width="1.3"/></svg>
+      Signal &amp; Gate
+    </a>
+    <a class="btn" href="architecture.html">← Architecture</a>
+  </div>
+</div>
+
+<main>
+  <nav class="page-tabs" aria-label="Site sections">
+    <a class="page-tab" href="index.html"><span class="n">01</span> Overview</a>
+    <a class="page-tab" href="architecture.html"><span class="n">02</span> Architecture</a>
+    <a class="page-tab" href="dataset.html" aria-current="page"><span class="n">03</span> Dataset &amp; Run It</a>
+  </nav>
+
+  <section class="page-hero">
+    <span class="eyebrow">03 · Dataset &amp; Run It</span>
+    <h1>What the corpus actually looks like, and how to run it yourself.</h1>
+    <p class="lede">Real documents from four categories, a live chunking preview for your own files, and the exact commands to bring the full system up on your machine.</p>
+  </section>
+
+  <section class="section" id="examples">
+    <div class="section-head reveal">
+      <span class="eyebrow">Example Documents</span>
+      <h2>Eleven documents, four categories</h2>
+      <p>A cross-section of the actual corpus. Teal tags are verbatim from <code>data/corpus/</code>; amber tags are illustrative examples built in the same schema, standing in for client and support records that can't be shown here (see the note below).</p>
+    </div>
+
+    <div class="example-toolbar reveal" role="group" aria-label="Filter examples by category">
+      <button class="filter-chip" aria-pressed="true" data-filter="all">All (11)</button>
+      <button class="filter-chip" aria-pressed="false" data-filter="general_info">General Info</button>
+      <button class="filter-chip" aria-pressed="false" data-filter="payment_processor">Payment Processors</button>
+      <button class="filter-chip" aria-pressed="false" data-filter="client_record">Client Records</button>
+      <button class="filter-chip" aria-pressed="false" data-filter="support_ticket">Support Tickets</button>
+    </div>
+
+    <div class="example-grid reveal" id="exampleGrid"></div>
+
+    <p style="font-size:.85rem;color:var(--ink-faint);max-width:70ch;">Client-record and support-ticket examples here use fictional companies (Cedar Retail, Northwind Grocery) built in the same schema as the real files. The shipped corpus does include real client and support records, but they name actual companies with fabricated financial details attached, so they're excluded from this public page. Everything tagged "real corpus" above is verbatim from the repository.</p>
+  </section>
+
+  <section class="section section-raised" id="try">
+    <div class="section-head reveal">
+      <span class="eyebrow">Try It Yourself</span>
+      <h2>This page can show you the pipeline. Only your own copy can run it.</h2>
+      <p>There's no LLM behind this static page. The answers on the Overview page are scripted. Everything below is real: a real sample dataset, the real chunking algorithm running in your browser, and the exact commands to bring the full agent up on your machine.</p>
+    </div>
+
+    <div class="try-grid reveal">
+      <div class="try-card blueprint">
+        <h3>Download the sample corpus</h3>
+        <p class="desc">Three files, safe to demo publicly: two verbatim from <code>data/corpus/</code>, one illustrative.</p>
+        <div class="file-row">
+          <div><span class="fname">basic_company_info.json</span><span class="fmeta">8 docs · real corpus · offices, leadership, HR policy</span></div>
+          <button class="btn small" data-download="basic">Download</button>
+        </div>
+        <div class="file-row">
+          <div><span class="fname">payment_processor_analysis.json</span><span class="fmeta">11 docs · real corpus · Razorpay / Stripe / PayU pricing</span></div>
+          <button class="btn small" data-download="processor">Download</button>
+        </div>
+        <div class="file-row">
+          <div><span class="fname">illustrative_client_examples.json</span><span class="fmeta">4 docs · fictional · client + support record schema</span></div>
+          <button class="btn small" data-download="illustrative">Download</button>
+        </div>
+        <p class="save-note">Saved as <code>.json</code>, rename to <code>.jsonl</code> and drop into <code>data/corpus/</code> before running the ingest script.</p>
+      </div>
+
+      <div class="try-card blueprint">
+        <h3>Bring your own data</h3>
+        <p class="desc">Upload a <code>.txt</code>, <code>.md</code> or <code>.jsonl</code> file and see exactly how <code>chunk_document()</code> would slice it: 200-word windows, 40-word overlap, title prepended to the first chunk. Runs entirely in your browser; nothing leaves this page.</p>
+        <label class="upload-zone" id="dropZone">
+          <input type="file" id="fileInput" accept=".txt,.md,.jsonl,.json">
+          <div class="up-title" id="upTitle">Click to choose a file, or drag one here</div>
+          <div class="up-sub">.txt · .md · .jsonl</div>
+        </label>
+        <div id="chunkOutput"></div>
+      </div>
+    </div>
+
+    <div class="card blueprint reveal" style="background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:1.4rem 1.6rem;">
+      <h3 style="margin-bottom:.5rem;">Run the full system locally</h3>
+      <p class="desc" style="color:var(--ink-soft);font-size:.9rem;margin:0 0 1rem;">Needs your own OpenAI API key. Redis and both agent + dashboard containers come up with one command.</p>
+      <div class="code-block">
+        <button class="copy-btn" id="copyCmd">Copy</button>
+        <div id="cmdText"><span class="comment"># 1. clone and configure</span>
+git clone https://github.com/vrhsr/veritas-agent.git
+cd veritas-agent
+cp .env.example .env   <span class="comment"># add your OPENAI_API_KEY</span>
+
+<span class="comment"># 2. build the retrieval indexes</span>
+python scripts/ingest_corpus.py
+
+<span class="comment"># 3. bring the stack up</span>
+docker compose -f config/docker-compose.yml up</div>
+      </div>
+      <p class="save-note">API on <code>localhost:8000</code> · dashboard on <code>localhost:8501</code>.</p>
+    </div>
+  </section>
+
+  <section class="section" id="stack">
+    <div class="section-head reveal">
+      <span class="eyebrow">Built On</span>
+      <h2>The stack underneath</h2>
+    </div>
+    <div class="stack-grid reveal">
+      <div class="stack-card"><h3>Orchestration</h3><div class="tagrow"><span class="tag">LangGraph</span><span class="tag">LangChain</span></div></div>
+      <div class="stack-card"><h3>LLM</h3><div class="tagrow"><span class="tag">gpt-4o-mini</span><span class="tag">gpt-4o (prod)</span></div></div>
+      <div class="stack-card"><h3>Retrieval</h3><div class="tagrow"><span class="tag">FAISS</span><span class="tag">BM25Okapi</span><span class="tag">MiniLM-L6-v2</span><span class="tag">Cross-Encoder</span></div></div>
+      <div class="stack-card"><h3>Memory</h3><div class="tagrow"><span class="tag">Redis</span><span class="tag">Per-user FAISS</span></div></div>
+      <div class="stack-card"><h3>Serving</h3><div class="tagrow"><span class="tag">FastAPI</span><span class="tag">SSE</span><span class="tag">Prometheus</span></div></div>
+      <div class="stack-card"><h3>Observability</h3><div class="tagrow"><span class="tag">structlog</span><span class="tag">tiktoken</span><span class="tag">LangSmith</span></div></div>
+      <div class="stack-card"><h3>Dashboard / Eval</h3><div class="tagrow"><span class="tag">Streamlit</span><span class="tag">Plotly</span><span class="tag">RAGAS</span></div></div>
+      <div class="stack-card"><h3>Deployment</h3><div class="tagrow"><span class="tag">Docker Compose</span><span class="tag">Render.com</span></div></div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="footer-top">
+      <div>
+        <span class="eyebrow" style="margin-bottom:.3rem;">Signal &amp; Gate</span>
+        <p style="margin:0;color:var(--ink-soft);font-size:.92rem;max-width:44ch;">A LangGraph multi-agent RAG pipeline: retrieval, reasoning, and validation, wired together with confidence-gated control flow.</p>
+      </div>
+      <nav class="footer-pages">
+        <a href="index.html">01 Overview</a>
+        <a href="architecture.html">02 Architecture</a>
+        <a href="dataset.html">03 Dataset &amp; Run It</a>
+      </nav>
+    </div>
+    <div class="footer-meta">
+      <span>Diagram reflects the actual <code>src/agent/graph.py</code> topology.</span>
+      <span><a href="https://github.com/vrhsr/veritas-agent" target="_blank" rel="noopener">github.com/vrhsr/veritas-agent</a></span>
+    </div>
+  </footer>
+</main>
+
+<script>
+(function(){
+  document.querySelectorAll('.reveal').forEach(function(el){
+    if(!('IntersectionObserver' in window)){ el.classList.add('in'); }
+  });
+  if('IntersectionObserver' in window){
+    var obsReveal = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){ entry.target.classList.add('in'); obsReveal.unobserve(entry.target); }
+      });
+    }, {threshold:0.12});
+    document.querySelectorAll('.reveal').forEach(function(el){ obsReveal.observe(el); });
+  }
+})();
+
+/* ---------- Example documents ---------- */
+(function(){
+  var EXAMPLES = [
+    {cat:'general_info', real:true, title:'Executive Leadership Team', src:'employee-handbook', snippet:'Chief Executive Officer (CEO): Rohan Desai. Chief Technology Officer (CTO): Anita Menon. Chief Financial Officer (CFO): Vikram Singh. Head of Sales: Priya Sharma…'},
+    {cat:'general_info', real:true, title:'Annual Leave and Holiday Policy', src:'hr-portal', snippet:'Employees are entitled to 21 days of paid annual leave per calendar year, plus 8 sick days and 10 public holidays. Leave requests via HRMS, 2 weeks in advance…'},
+    {cat:'general_info', real:true, title:'Work from Home (WFH) Guidelines', src:'hr-portal', snippet:'Hybrid model: in-office Tuesday through Thursday, flexible WFH on Monday and Friday. Fully remote roles require a stable connection of at least 50 Mbps…'},
+    {cat:'payment_processor', real:true, title:'Razorpay Pricing and Fee Structure', src:'internal-analysis', snippet:'Standard MDR for credit cards: 2%. Debit cards: 0.40% below ₹2,000, 0.75% above. UPI: 0% (NPCI mandate). Enterprise volume above ₹500 crore negotiates to 1.4–1.65%…'},
+    {cat:'payment_processor', real:true, title:'Stripe Pricing and Fee Structure', src:'internal-analysis', snippet:'All cards: 2.9% + $0.30 per transaction, flat rate, no negotiation for standard accounts. Does not support UPI natively, a disadvantage for India-first businesses…'},
+    {cat:'payment_processor', real:true, title:'Razorpay vs Stripe: Head to Head', src:'internal-analysis', snippet:'Use Razorpay when 90%+ transactions are domestic and UPI matters. Use Stripe when 40%+ revenue is international. Hybrid strategy: Razorpay for India, Stripe abroad…'},
+    {cat:'payment_processor', real:true, title:'GST and Tax Compliance on Fees', src:'internal-analysis', snippet:'Gateway fees carry 18% GST on top of the MDR. GST-registered merchants can claim input tax credit, effectively neutralizing the GST component of the cost…'},
+    {cat:'client_record', real:false, title:'Cedar Retail — Client Record', src:'illustrative-example', snippet:'Industry: Home &amp; Furniture E-commerce. Tier: Enterprise. Annual GMV: ₹210 crore. Payment Processor: Razorpay. Health Score: 79/100. Known issue: EMI approval delays…'},
+    {cat:'client_record', real:false, title:'Northwind Grocery — Client Record', src:'illustrative-example', snippet:'Industry: Quick Commerce. Tier: Mid-Market. Annual GMV: ₹340 crore. Monthly volume: 4.1 lakh transactions. Known issue: settlement reconciliation lag of 1–2 days…'},
+    {cat:'support_ticket', real:false, title:'Ticket #EX-201 — Checkout Timeout', src:'illustrative-example', snippet:'Cedar Retail. Checkout timing out for 4% of sessions during a flash sale. Root cause: payment callback queue backlog. Fixed by raising worker concurrency…'},
+    {cat:'support_ticket', real:false, title:'Ticket #EX-244 — Settlement Lag', src:'illustrative-example', snippet:'Northwind Grocery. Settlement reports arriving 1–2 days late during a promotion. Root cause: reconciliation batch queued behind a partner bank\'s month-end run…'}
+  ];
+
+  var CAT_LABEL = {
+    general_info:'General Info', payment_processor:'Payment Processor',
+    client_record:'Client Record', support_ticket:'Support Ticket'
+  };
+
+  var grid = document.getElementById('exampleGrid');
+  var chips = document.querySelectorAll('.filter-chip');
+
+  function render(filter){
+    var items = filter === 'all' ? EXAMPLES : EXAMPLES.filter(function(e){ return e.cat === filter; });
+    grid.innerHTML = items.map(function(e){
+      var catClass = e.real ? 'cat' : 'cat fictional';
+      var tagText = (e.real ? 'Real corpus · ' : 'Illustrative · ') + CAT_LABEL[e.cat];
+      return '<div class="example-card">' +
+        '<span class="' + catClass + '">' + tagText + '</span>' +
+        '<h4>' + e.title + '</h4>' +
+        '<p class="snippet">' + e.snippet + '</p>' +
+        '<span class="srcline">source: ' + e.src + '</span>' +
+      '</div>';
+    }).join('');
+  }
+
+  chips.forEach(function(chip){
+    chip.addEventListener('click', function(){
+      chips.forEach(function(c){ c.setAttribute('aria-pressed','false'); });
+      chip.setAttribute('aria-pressed','true');
+      render(chip.getAttribute('data-filter'));
+    });
+  });
+
+  render('all');
+})();
+
+/* ---------- Try It Yourself ---------- */
+(function(){
+  var CORPUS_BASIC = [
+    `{"id": "faq-001", "title": "Company Office Locations and Addresses", "source": "employee-handbook", "corpus_type": "general_info", "text": "Our company has three main offices. Head Office (Bengaluru): 4th Floor, Salarpuria Tower, Koramangala, Bengaluru 560034. Sales Office (Mumbai): 2nd Floor, WeWork BKC, Bandra Kurla Complex, Mumbai 400051. Engineering Hub (Pune): 1st Floor, Magarpatta City, Pune 411013."}`,
+    `{"id": "faq-002", "title": "Executive Leadership Team", "source": "employee-handbook", "corpus_type": "general_info", "text": "Company Leadership: Chief Executive Officer (CEO): Rohan Desai. Chief Technology Officer (CTO): Anita Menon. Chief Financial Officer (CFO): Vikram Singh. Head of Sales: Priya Sharma. Head of Customer Success: Karthik Nair."}`,
+    `{"id": "faq-003", "title": "Office Wi-Fi and IT Support Details", "source": "it-portal", "corpus_type": "general_info", "text": "Office Wi-Fi Network: 'Corp-Guest-5G'. Guest Wi-Fi Password: 'WelcomeToCorp2024!'. Employee Wi-Fi: Connect using your individual LDAP credentials. For any IT issues, such as password resets or hardware requests, email it-helpdesk@company.internal or call extension 4040."}`,
+    `{"id": "faq-004", "title": "Annual Leave and Holiday Policy", "source": "hr-portal", "corpus_type": "general_info", "text": "Employees are entitled to 21 days of paid annual leave per calendar year. In addition, employees get 8 sick days and 10 public holidays. Sick leaves extending beyond 3 consecutive days require a medical certificate. Leave requests must be submitted via the HRMS portal at least 2 weeks in advance for planned vacations."}`,
+    `{"id": "faq-005", "title": "Work from Home (WFH) Guidelines", "source": "hr-portal", "corpus_type": "general_info", "text": "Our company follows a hybrid work model. Employees are expected to be in the office 3 days a week (Tuesday, Wednesday, and Thursday). Monday and Friday are flexible Work from Home days. For fully remote roles, employees must ensure a stable internet connection of at least 50 Mbps."}`,
+    `{"id": "faq-006", "title": "Expense Reimbursement Process", "source": "finance-portal", "corpus_type": "general_info", "text": "All employee expenses must be filed via the 'Expensify' app. Meal allowance during client travel is capped at ₹1,500 per day. Hotel bookings must not exceed ₹6,000 per night for Tier-1 cities. Reimbursements are processed on the 15th and 30th of every month. Receipts are mandatory for any expense above ₹500."}`,
+    `{"id": "faq-007", "title": "Sales Team Commission Structure 2024", "source": "internal-sales", "corpus_type": "sales_playbook", "text": "Sales Account Managers earn a base salary plus commission. The commission rate is 5% of the first-year Annual Contract Value (ACV) for a new enterprise client. For contract renewals, the commission is 2% of the renewal value. Commissions are paid out quarterly. The quarterly quota for a Senior Account Manager is ₹1.5 crore."}`,
+    `{"id": "faq-008", "title": "New Employee Onboarding Schedule", "source": "hr-portal", "corpus_type": "general_info", "text": "New hires undergo a 3-day onboarding process. Day 1: HR induction and laptop setup (9 AM to 1 PM), followed by a welcome lunch. Day 2: Product architecture overview and shadowing support calls. Day 3: Manager 1-on-1 and goal setting for the first 30 days."}`
+  ].join('\n');
+
+  var CORPUS_PROCESSOR = [
+    `{"id": "proc-001", "title": "Razorpay Pricing and Fee Structure - Internal Analysis", "source": "internal-analysis", "corpus_type": "payment_processor", "text": "Razorpay Domestic Pricing (as of 2024): Standard MDR for credit cards: 2% per transaction. Debit cards: 0.40% for transactions below ₹2,000, 0.75% above ₹2,000. UPI: 0% (zero MDR per NPCI mandate). Net banking: ₹7 flat per transaction. Wallets (Paytm, PhonePe): 1.5% per transaction. EMI on cards: 1.5% per transaction. Enterprise clients with annual volume above ₹500 crore can negotiate rates down to 1.4-1.65% on cards. Razorpay charges no setup fee and no monthly fee. Settlement: T+1 for UPI and T+2 for cards by default. Instant settlement available at 0.25% additional charge. International payments: Razorpay supports 100+ currencies. International MDR: 3% + currency conversion at standard bank rates. Chargeback fee: ₹350 per disputed transaction. Refund: Full refund free, partial refund free. Razorpay Route (split payments/marketplace): 0.25% routing fee. Subscriptions/recurring: No extra charge. Razorpay Capital (lending): Separate product, no impact on MDR."}`,
+    `{"id": "proc-002", "title": "Stripe Pricing and Fee Structure - Internal Analysis", "source": "internal-analysis", "corpus_type": "payment_processor", "text": "Stripe Standard Pricing (as of 2024): All cards (domestic and international): 2.9% + $0.30 per transaction. This is a flat rate with no negotiation for standard accounts. Enterprise pricing available for volume above $1M/month — negotiated rates typically 2.2-2.5% + $0.25. International card surcharge: +1.5% additional for cards issued outside your country. Currency conversion: 1% fee if currency conversion required. Stripe does not support UPI natively — significant disadvantage for India-first businesses. ACH bank transfers (US): 0.8% capped at $5. SEPA Direct Debit (Europe): 0.8% capped at €5. Stripe Billing (subscriptions): Included at no extra cost for standard plans. Stripe Connect (marketplace): 0.25% + standard processing fees. Dispute/chargeback fee: $15 per dispute. Refunds: Processing fees not returned on refunds — this is a key difference from Razorpay. Stripe Radar (fraud): Included in standard pricing. Stripe Terminal (in-person): 2.7% + $0.05 per transaction. Settlement: 2 business days (US), 7 business days for new accounts."}`,
+    `{"id": "proc-003", "title": "PayU India Pricing and Fee Structure - Internal Analysis", "source": "internal-analysis", "corpus_type": "payment_processor", "text": "PayU India Pricing (as of 2024): Credit cards: 1.99% per transaction. Debit cards: 0.40% below ₹2,000, 0.75% above ₹2,000 (same as RBI mandate). UPI: 0% (NPCI mandate). Net banking: ₹6 per transaction. EMI: 1.5%. International: 3% + $0.30. PayU enterprise accounts (above ₹200 crore annual volume) can negotiate 1.55-1.80% on cards. PayU is part of Prosus group. Settlement: T+2 standard, T+1 available on request. PayU known for strong presence in Tier-2 and Tier-3 cities. PayU LazyPay (BNPL): Available, separate agreement. PayU Payout (bulk disbursement): ₹3-5 per transaction flat. Dispute management portal less sophisticated than Razorpay or Stripe. Customer support: Phone and email, response time 24-48 hours."}`,
+    `{"id": "proc-004", "title": "Razorpay vs Stripe - Head to Head Comparison for Enterprise Clients", "source": "internal-analysis", "corpus_type": "payment_processor", "text": "Razorpay vs Stripe - Key Differences for Enterprise Decision Making. Use Razorpay when: 90%+ transactions are domestic India. Need UPI support (0% MDR advantage). Need NACH/e-mandate for subscriptions. Require Indian regulatory compliance out of the box. Need vernacular language support in checkout. Have volume above ₹100 crore for negotiated rates. Use Stripe when: More than 40% revenue is international. Need multi-currency billing (USD, EUR, GBP, etc.). Serving US or European customers primarily. Need advanced developer APIs and webhooks. Building a global SaaS product. Cost comparison example: ₹10 lakh domestic transaction via Razorpay at 1.75% = ₹17,500. Same via Stripe at 2.9% = ₹29,000. Razorpay saves ₹11,500 per ₹10 lakh in domestic volume. For international transactions: Razorpay charges 3%, Stripe charges 2.9% + 1.5% international surcharge = 4.4%. Razorpay is cheaper internationally too. Verdict for pure Indian businesses: Razorpay wins on cost. Verdict for international SaaS: Stripe wins on coverage and features. Hybrid strategy recommendation: Use Razorpay for India billing, Stripe for international billing."}`,
+    `{"id": "proc-005", "title": "CCAvenue Pricing and Overview", "source": "internal-analysis", "corpus_type": "payment_processor", "text": "CCAvenue (Infibeam Avenues) Pricing 2024: Credit cards: 2% per transaction. Debit cards: 1.25% per transaction (higher than competitor mandated rates — legacy issue). Net banking: ₹7 per transaction. UPI: 0% (mandate). International: 3.5% per transaction. CCAvenue has 200+ payment options, one of the widest in India. Strong in government, education, and utility payments. Older technology stack compared to Razorpay. Dashboard and reporting less sophisticated. Settlement: T+3 standard. CCAvenue Xtend (EMI): 1.75%. Enterprise rates negotiable above ₹50 crore annual volume. Key weakness: Debit card MDR is above market rate. Customer support: Average response time 48-72 hours. Best suited for: Government portals, educational institutions, traditional businesses not needing modern API integration."}`,
+    `{"id": "proc-006", "title": "International Payment Processing - Deep Dive", "source": "internal-analysis", "corpus_type": "payment_processor", "text": "International Payment Processing Options for Indian Companies 2024. For Indian companies accepting payments from international customers: Razorpay International: Accepts 100+ currencies. Settles in INR. MDR: 3% flat. No international surcharge. Requires FEMA compliance and AD bank tie-up. Good for companies doing below $500K annual international volume. Stripe (with Indian entity): Accepts 135+ currencies. Settles in INR, USD, EUR. MDR: 2.9% + $0.30 + 1.5% international surcharge (total ~4.4% for cross-border). Better developer experience. Required for companies with heavy US/EU customer base. PayPal (for international): MDR: 3.49% + $0.49. High fees but high consumer trust in US. Useful for B2C international. Cashfree International: 3% + $0.30. Emerging option. OPGSP (Overseas Payment Service Provider) model: Indian companies can accept international cards through Razorpay/Stripe acting as OPGSP. Regulatory note: All international payments must be reported to AD Bank within 7 days under FEMA. GST not applicable on international transactions (zero-rated exports). Key decision factor: If more than 30% of your revenue is international, evaluate Stripe. Below 30%, Razorpay international is sufficient and cheaper."}`,
+    `{"id": "proc-009", "title": "UPI and RuPay - Zero MDR Impact on Business", "source": "internal-analysis", "corpus_type": "payment_processor", "text": "UPI Zero MDR — Business Implications 2024. NPCI Mandate: Since January 2020, UPI transactions carry 0% MDR for merchants. This is a government mandate. No payment processor charges MDR on UPI regardless of volume. UPI market share in India: 80% of all digital transactions by volume (2024). Average UPI transaction size: ₹1,200. Impact on payment processor revenue: Razorpay, PayU, and others earn nothing on UPI transactions. They earn only on cards, netbanking, EMI, and wallets. Strategic implication for clients: If your transaction mix is 70%+ UPI, your blended MDR is very low. Example: a merchant with 75% UPI volume and a 1.75% card rate blends down to roughly 0.44% overall MDR; one with 80% UPI volume blends closer to 0.35%. RuPay cards: Also 0% MDR since 2019. Premium RuPay credit cards: 0% MDR for merchants. CBDC (Digital Rupee): Pilot stage, 0% MDR expected. Implication for processor choice: For high-UPI businesses, processor MDR differences matter less. Focus on reliability, settlement speed, and value-added services instead."}`,
+    `{"id": "proc-010", "title": "Chargeback and Dispute Management - Processor Comparison", "source": "internal-analysis", "corpus_type": "payment_processor", "text": "Chargeback and Dispute Management Comparison 2024. Chargeback rates by industry (India averages): E-commerce: 0.6-0.8%. Subscription SaaS: 0.3-0.5%. Food delivery: 0.2-0.4%. Travel: 1.2-1.8%. Chargeback fee comparison: Razorpay: ₹350 per dispute, regardless of outcome. Stripe: $15 (approx ₹1,250) per dispute, refunded if merchant wins. PayU: ₹250 per dispute. CCAvenue: ₹400 per dispute. Dispute resolution time: Razorpay: Average 15 business days. Stripe: Average 75-90 days (US timeline applies). PayU: Average 21 business days. Razorpay advantage: Disputes resolved under Indian banking rules — faster and more predictable. Stripe advantage: Stripe Radar AI fraud detection reduces disputes by 25% proactively. Businesses with a heavy international-card mix or last-mile delivery models tend to see the highest chargeback rates. Recommendation: High-dispute clients should use Razorpay for lower per-dispute cost and faster resolution."}`,
+    `{"id": "proc-011", "title": "Internal Sales Playbook - Payment Processor Objection Handling", "source": "internal-sales", "corpus_type": "sales_playbook", "text": "Common Objections and Responses for Payment Processor Comparisons. Objection 1: 'Stripe has better developer experience.' Response: Razorpay APIs are equally well-documented and specifically optimized for Indian payment rails. Razorpay has SDKs for React, Android, iOS, Flutter. Razorpay Checkout is a single line of code. Developer NPS for Razorpay in India is 68 vs Stripe's global NPS of 72 — nearly equivalent. Objection 2: 'Stripe supports more countries.' Response: True for pure international play. But Razorpay covers 100+ currencies for acceptance. If your business is India-first with some international, Razorpay is superior. Only choose Stripe if 40%+ revenue is from outside India. Objection 3: 'Our current processor is good enough.' Response: Calculate their current blended MDR and compare to what Razorpay can offer. For a ₹100 crore annual volume business, a 0.3% MDR reduction saves ₹30 lakh per year. Objection 4: 'Switching payment processors is too risky.' Response: Razorpay migration team handles full switchover. Zero downtime migration plan. Parallel run for 2 weeks to validate. Reference case: a mid-market delivery platform migrated from PayU to Razorpay in 3 weeks with zero downtime. Objection 5: 'We are already on Stripe and everything works.' Response: Fair. For international SaaS, Stripe is the right choice. Only push Razorpay if they have significant domestic volume being processed at 2.9%."}`,
+    `{"id": "proc-014", "title": "GST and Tax Compliance on Payment Processing Fees", "source": "internal-analysis", "corpus_type": "payment_processor", "text": "GST on Payment Processing Fees 2024. Payment gateway service fees are subject to 18% GST in India. This is charged on top of the MDR. Example: Razorpay charges 1.75% MDR + 18% GST on that fee. Effective cost to merchant: 1.75% * 1.18 = 2.065% of transaction value. Stripe charges 2.9% MDR + 18% GST. Effective cost: 2.9% * 1.18 = 3.422%. GST credit: If the merchant is GST-registered (B2B), they can claim input tax credit (ITC) on the GST paid to the payment processor. This effectively reduces the net cost. For a GST-registered enterprise client: Net effective MDR after ITC = base MDR only (GST neutralized). For B2C merchants (not GST registered): Full 2.065% or 3.422% is the actual cost. Implication: For enterprise clients (all B2B, GST-registered), the GST component of MDR is a pass-through. The actual comparison should be on base MDR only: Razorpay 1.75% vs Stripe 2.9% — net of GST. Compliance: Payment processors must issue GST invoices monthly. All our processors are compliant."}`,
+    `{"id": "proc-015", "title": "Payment Processor Integration and Technical Evaluation", "source": "internal-analysis", "corpus_type": "payment_processor", "text": "Technical Integration Comparison 2024. API Quality: Razorpay: REST API, well-documented, India-specific (UPI, NACH, QR). Stripe: REST API, industry gold standard, better webhook reliability, superior testing tools (Stripe CLI). PayU: REST API, older design, less consistent error responses. Integration time estimate: Razorpay basic checkout: 1-2 days. Razorpay full integration (subscriptions, payouts, webhooks): 1-2 weeks. Stripe basic: 2-3 days (more complex initial setup). Stripe full: 2-3 weeks. Mobile SDK quality: Razorpay Android/iOS SDK — excellent, 4.6/5 Play Store. Stripe Mobile SDK — excellent, 4.7/5 Play Store. Webhook reliability: Stripe webhooks: 99.98% delivery, automatic retry, full event log. Razorpay webhooks: 99.90% delivery, manual retry required on failure. This gap matters for subscription billing and payout automation. PCI DSS Compliance: All major processors (Razorpay, Stripe, PayU) are PCI DSS Level 1 compliant. Merchants using hosted checkout are automatically compliant. Testing environment: Stripe test mode is superior — all card scenarios, simulated failures, full parity with production. Razorpay sandbox is adequate but has gaps (NACH testing limited)."}`
+  ].join('\n');
+
+  var CORPUS_ILLUSTRATIVE = [
+    `{"id": "example-client-001", "title": "Cedar Retail - Illustrative Client Record", "source": "illustrative-example", "corpus_type": "client_record", "text": "Client: Cedar Retail. Industry: Home and Furniture E-commerce. Tier: Enterprise. Annual GMV: ₹210 crore. Payment Processor: Razorpay. Contract Start: June 2023. Contract Value: ₹9 lakh per year. Account Manager: Ananya Rao. Primary Use Case: Domestic checkout, UPI, EMI on cards. International Payments: No. Monthly transaction volume: 85,000 transactions. Average ticket size: ₹2,450. Current MDR: 1.80% on credit cards, 0% on UPI. Known Issues: Occasional EMI approval delays during festival sales. Last Support Ticket: February 2024, resolved in 6 hours. Renewal Due: June 2025. Health Score: 79/100. Note: illustrative example, not part of the shipped corpus."}`,
+    `{"id": "example-client-002", "title": "Northwind Grocery - Illustrative Client Record", "source": "illustrative-example", "corpus_type": "client_record", "text": "Client: Northwind Grocery. Industry: Quick Commerce. Tier: Mid-Market. Annual GMV: ₹340 crore. Payment Processor: Razorpay. Contract Start: January 2024. Contract Value: ₹6 lakh per year. Account Manager: Farhan Sheikh. Primary Use Case: High-frequency low-ticket transactions, UPI Autopay. International Payments: No. Monthly transaction volume: 4.1 lakh transactions. Average ticket size: ₹290. Current MDR: 0% on UPI, 1.75% on cards. Known Issues: Settlement reconciliation lag of 1-2 days during promotions. Last Support Ticket: April 2024. Renewal Due: January 2025. Health Score: 84/100. Note: illustrative example, not part of the shipped corpus."}`,
+    `{"id": "example-support-001", "title": "Support Ticket #EX-201 - Cedar Retail Checkout Timeout", "source": "illustrative-example", "corpus_type": "support_ticket", "text": "Ticket #EX-201. Client: Cedar Retail. Priority: P2. Date: February 12, 2024. Issue: Checkout page timing out for 4% of sessions during a flash sale. Normal timeout rate is under 0.5%. Root cause: Payment gateway callback queue backed up under sudden traffic spike. Fix: Increased callback worker concurrency and added a retry queue. Timeout rate dropped to 0.3% post-fix. Time to resolve: 6 hours. Note: illustrative example, not part of the shipped corpus."}`,
+    `{"id": "example-support-002", "title": "Support Ticket #EX-244 - Northwind Grocery Settlement Lag", "source": "illustrative-example", "corpus_type": "support_ticket", "text": "Ticket #EX-244. Client: Northwind Grocery. Priority: P3. Date: April 3, 2024. Issue: Settlement reports arriving 1-2 days later than the contracted T+1 window during a promotional period. Root cause: Batch reconciliation job queued behind a backlog from a partner bank's month-end processing. Fix: Reprioritized the client's reconciliation batch and added a dedicated queue for high-volume accounts during promotions. Note: illustrative example, not part of the shipped corpus."}`
+  ].join('\n');
+
+  function saveFile(filename, content){
+    var viaClaude = (function(){
+      if(!(window.claude && typeof window.claude.use === 'function')) return null;
+      return window.claude.use('downloads').then(function(downloads){
+        if(!downloads) throw new Error('unavailable');
+        return downloads.save({filename: filename, data: content});
+      });
+    })();
+    var fallback = function(){
+      var blob = new Blob([content], {type:'application/json'});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+    };
+    if(viaClaude){ viaClaude.catch(fallback); } else { fallback(); }
+  }
+
+  document.querySelectorAll('[data-download]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var key = btn.getAttribute('data-download');
+      if(key === 'basic') saveFile('basic_company_info.json', CORPUS_BASIC);
+      else if(key === 'processor') saveFile('payment_processor_analysis.json', CORPUS_PROCESSOR);
+      else saveFile('illustrative_client_examples.json', CORPUS_ILLUSTRATIVE);
+    });
+  });
+
+  function chunkDocument(doc, chunkSize, overlap){
+    chunkSize = chunkSize || 200; overlap = overlap || 40;
+    var text = (doc.text || '').replace(/\s+/g,' ').trim();
+    var source = doc.source || doc.id || 'unknown';
+    var title = doc.title || '';
+    var corpusType = doc.corpus_type || 'unknown';
+    if(!text) return [];
+    var words = text.split(' ');
+    if(title && text.indexOf(title) !== 0){ words = title.split(' ').concat(words); }
+    var chunks = [];
+    var start = 0;
+    while(start < words.length){
+      var end = Math.min(start + chunkSize, words.length);
+      chunks.push({
+        text: words.slice(start,end).join(' '),
+        source: source, doc_id: doc.id || source, title: title,
+        corpus_type: corpusType, chunk_index: chunks.length
+      });
+      if(end >= words.length) break;
+      start += chunkSize - overlap;
+    }
+    return chunks;
+  }
+
+  function parseUploaded(name, raw){
+    var docs = [];
+    var lower = name.toLowerCase();
+    if(lower.endsWith('.jsonl') || lower.endsWith('.json')){
+      var parsedAny = false;
+      raw.split('\n').forEach(function(line){
+        line = line.trim();
+        if(!line) return;
+        try{ docs.push(JSON.parse(line)); parsedAny = true; }catch(e){ /* skip malformed line */ }
+      });
+      if(!parsedAny){ docs.push({id:name, title:name, source:name, corpus_type:'uploaded', text:raw}); }
+    } else {
+      docs.push({id:name, title:name, source:name, corpus_type:'uploaded', text:raw});
+    }
+    return docs;
+  }
+
+  var dropZone = document.getElementById('dropZone');
+  var fileInput = document.getElementById('fileInput');
+  var upTitle = document.getElementById('upTitle');
+  var outputEl = document.getElementById('chunkOutput');
+
+  function renderChunks(docCount, chunks){
+    if(!chunks.length){ outputEl.innerHTML = '<p class="try-error">No text found to chunk.</p>'; return; }
+    var totalWords = chunks.reduce(function(sum,c){ return sum + c.text.split(' ').length; }, 0);
+    var avg = Math.round(totalWords / chunks.length);
+    var rows = chunks.map(function(c){
+      var preview = c.text.length > 170 ? c.text.slice(0,170) + '…' : c.text;
+      var label = (c.title || c.source || 'chunk').replace(/</g,'&lt;');
+      return '<div class="chunk-item"><div class="chead"><span>chunk ' + c.chunk_index + ' · ' + label + '</span><span>' + c.text.split(' ').length + ' words</span></div><div class="ctext">' + preview.replace(/</g,'&lt;') + '</div></div>';
+    }).join('');
+    outputEl.innerHTML =
+      '<div class="chunk-summary">' +
+        '<div><strong>' + docCount + '</strong>document' + (docCount===1?'':'s') + '</div>' +
+        '<div><strong>' + chunks.length + '</strong>chunks generated</div>' +
+        '<div><strong>' + avg + '</strong>avg words / chunk</div>' +
+      '</div><div class="chunk-list">' + rows + '</div>';
+  }
+
+  function handleFile(file){
+    if(!file) return;
+    upTitle.textContent = file.name;
+    var reader = new FileReader();
+    reader.onload = function(e){
+      try{
+        var docs = parseUploaded(file.name, String(e.target.result));
+        var allChunks = [];
+        docs.forEach(function(d){ allChunks = allChunks.concat(chunkDocument(d)); });
+        renderChunks(docs.length, allChunks);
+      }catch(err){
+        outputEl.innerHTML = '<p class="try-error">Could not process that file: ' + err.message + '</p>';
+      }
+    };
+    reader.onerror = function(){ outputEl.innerHTML = '<p class="try-error">Could not read that file.</p>'; };
+    reader.readAsText(file);
+  }
+
+  if(fileInput){
+    fileInput.addEventListener('change', function(e){ handleFile(e.target.files[0]); });
+    dropZone.addEventListener('dragover', function(e){ e.preventDefault(); dropZone.classList.add('drag'); });
+    dropZone.addEventListener('dragleave', function(){ dropZone.classList.remove('drag'); });
+    dropZone.addEventListener('drop', function(e){
+      e.preventDefault(); dropZone.classList.remove('drag');
+      if(e.dataTransfer.files && e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+    });
+  }
+
+  var copyBtn = document.getElementById('copyCmd');
+  if(copyBtn){
+    copyBtn.addEventListener('click', function(){
+      var text = document.getElementById('cmdText').innerText;
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(function(){
+          copyBtn.textContent = 'Copied';
+          setTimeout(function(){ copyBtn.textContent = 'Copy'; }, 1600);
+        }).catch(function(){ copyBtn.textContent = 'select & copy'; });
+      }
+    });
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,8 +1,8 @@
 """
 Node 1: Query Analyzer
-Classifies incoming query and extracts structured metadata before any LLM work happens.
 Routes: simple → response_generator | complex → retrieval_agent | ambiguous → clarification_agent
 """
+from typing import cast
 import json
 import time
 import os
@@ -19,7 +19,8 @@ from utils.token_counter import count_tokens
 logger = get_logger(__name__)
 
 PROMPT_VERSION = os.getenv("PROMPT_VERSION", "v1")
-PROMPTS_DIR = Path(os.getenv("PROMPTS_DIR", "prompts/v1"))
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+PROMPTS_DIR = Path(os.getenv("PROMPTS_DIR", PROJECT_ROOT / "prompts/v1"))
 
 
 def load_prompt(name: str) -> str:
@@ -92,8 +93,8 @@ def query_analyzer_node(state: AgentState) -> AgentState:
     output_tokens = count_tokens(raw)
     cost = estimate_cost(input_tokens, output_tokens)
 
-    query_type = parsed.get("query_type", "complex")
-    new_slots = parsed.get("intent_slots", {})
+    query_type = parsed.get("query_type") or "complex"
+    new_slots = parsed.get("intent_slots") if isinstance(parsed.get("intent_slots"), dict) else {}
     resolved_query = parsed.get("resolved_query")
 
     # Persist updated slot state to Redis
@@ -120,13 +121,20 @@ def query_analyzer_node(state: AgentState) -> AgentState:
         latency_s=round(elapsed, 3),
     )
 
+    named_entities = parsed.get("named_entities") if isinstance(parsed.get("named_entities"), list) else []
+    required_tools = parsed.get("required_tools") if isinstance(parsed.get("required_tools"), list) else ["vector_search", "bm25_search"]
+    try:
+        complexity_score = float(parsed.get("complexity_score", 0.5))
+    except (TypeError, ValueError):
+        complexity_score = 0.5
+
     updates: dict = {
         "original_query": working_query,
         "query_type": query_type,
-        "intent_slots": {**current_slots, **new_slots},
-        "named_entities": parsed.get("named_entities", []),
-        "required_tools": parsed.get("required_tools", ["vector_search", "bm25_search"]),
-        "complexity_score": float(parsed.get("complexity_score", 0.5)),
+        "intent_slots": {**(current_slots or {}), **new_slots},
+        "named_entities": named_entities,
+        "required_tools": required_tools,
+        "complexity_score": complexity_score,
         "cost_inr": state.get("cost_inr", 0.0) + cost,
         "prompt_version": PROMPT_VERSION,
         "node_latencies": {**state.get("node_latencies", {}), "query_analyzer": round(elapsed, 3)},
@@ -135,7 +143,7 @@ def query_analyzer_node(state: AgentState) -> AgentState:
             "query_analyzer": {"input": input_tokens, "output": output_tokens},
         },
     }
-    return {**state, **updates}
+    return cast(AgentState, {**state, **updates})
 
 
 def route_after_query_analyzer(state: AgentState) -> str:

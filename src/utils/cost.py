@@ -1,8 +1,4 @@
-"""
-Token cost estimation for gpt-4o-mini pricing.
-Updated: May 2025 pricing (verify at platform.openai.com/pricing)
-"""
-
+ 
 # gpt-4o-mini pricing (per 1M tokens)
 PRICING = {
     "gpt-4o-mini": {"input": 0.150 / 1_000_000, "output": 0.600 / 1_000_000},

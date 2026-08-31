@@ -1,8 +1,4 @@
-"""
-LangGraph Graph Definition
-Wires all 7 nodes together with conditional edges.
-Supports cycles (validation → retrieval retry loop).
-"""
+ 
 import os
 import uuid
 from typing import AsyncGenerator
@@ -23,24 +19,6 @@ logger = get_logger(__name__)
 
 
 def build_graph() -> StateGraph:
-    """
-    Builds and compiles the full LangGraph agent graph.
-
-    Graph topology:
-        memory_loader → query_analyzer
-            ├── ambiguous → clarification_agent → retrieval_agent
-            └── simple/complex → retrieval_agent
-                                   ├── simple → response_generator
-                                   └── complex → reasoning_agent
-                                                 ├── confidence ≥ 0.7 → validation_agent
-                                                 ├── confidence 0.5–0.69 → retrieval_agent (retry)
-                                                 └── confidence < 0.5  → clarification_agent
-                         validation_agent
-                              ├── pass → response_generator
-                              ├── fail + retry < max → retrieval_agent
-                              └── fail + retry = max → response_generator
-                         response_generator → memory_manager → END
-    """
     graph = StateGraph(AgentState)
 
     # ── Register nodes ────────────────────────────────────────────────────────

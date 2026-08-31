@@ -48,7 +48,7 @@ RETRY_COUNTER = Counter("agent_retries_total", "Total retrieval retries triggere
 VALIDATION_COUNTER = Counter("agent_validations_total", "Validation outcomes", ["result"])
 COST_HISTOGRAM = Histogram(
     "agent_cost_inr",
-    "Cost per query in USD",
+    "Cost per query in inr",
     buckets=[0.0001, 0.001, 0.005, 0.01, 0.02, 0.05],
 )
 

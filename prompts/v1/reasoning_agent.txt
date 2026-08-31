@@ -29,4 +29,8 @@ Respond ONLY with valid JSON in this exact format:
   "confidence": 0.0
 }
 
+
+
 Do not include any explanation outside the JSON object.
+
+

@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Architecture — Signal &amp; Gate</title>
+  <meta name="description" content="The full 8-node LangGraph topology behind Signal &amp; Gate: every agent, every routing rule, every confidence threshold.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Ccircle cx='4' cy='10' r='2.6' fill='%230E6B5A'/%3E%3Ccircle cx='16' cy='4' r='2.6' fill='%23221C13'/%3E%3Ccircle cx='16' cy='16' r='2.6' fill='%23221C13'/%3E%3Cpath d='M6.3 8.7 13.7 5.1M6.3 11.3 13.7 14.9' stroke='%23221C13' stroke-width='1.3'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html">
+      <svg class="mark" viewBox="0 0 20 20" fill="none"><circle cx="4" cy="10" r="2.6" fill="#0E6B5A"/><circle cx="16" cy="4" r="2.6" fill="#221C13"/><circle cx="16" cy="16" r="2.6" fill="#221C13"/><path d="M6.3 8.7 13.7 5.1M6.3 11.3 13.7 14.9" stroke="#221C13" stroke-width="1.3"/></svg>
+      Signal &amp; Gate
+    </a>
+    <a class="btn" href="dataset.html">Dataset &amp; Run It →</a>
+  </div>
+</div>
+
+<main>
+  <nav class="page-tabs" aria-label="Site sections">
+    <a class="page-tab" href="index.html"><span class="n">01</span> Overview</a>
+    <a class="page-tab" href="architecture.html" aria-current="page"><span class="n">02</span> Architecture</a>
+    <a class="page-tab" href="dataset.html"><span class="n">03</span> Dataset &amp; Run It</a>
+  </nav>
+
+  <section class="page-hero">
+    <span class="eyebrow">02 · Architecture</span>
+    <h1>Eight nodes, one shared state, no globals.</h1>
+    <p class="lede">Every node reads a piece of the same dictionary and writes its piece back. Here's exactly what each one does, how the graph routes between them, and the thresholds that decide what happens next.</p>
+  </section>
+
+  <section class="section" id="how">
+    <div class="section-head reveal">
+      <span class="eyebrow">How It Thinks</span>
+      <h2>The eight agents</h2>
+      <p>Click a card for what it actually reads and writes.</p>
+    </div>
+    <div class="node-grid reveal" id="nodeGrid"></div>
+  </section>
+
+  <section class="section section-raised" id="diagrams">
+    <div class="section-head reveal">
+      <span class="eyebrow">Under the Hood</span>
+      <h2>The full graph and the retrieval pipeline</h2>
+      <p>The exact LangGraph topology, live from <code>src/agent/graph.py</code>.</p>
+    </div>
+
+    <div class="diagram-frame reveal">
+<pre class="mermaid">
+flowchart TD
+  Start(["User query"])
+  ML["Memory Loader"]
+  QA{{"Query Analyzer"}}
+  CA["Clarification Agent"]
+  RA["Retrieval Agent"]
+  REA["Reasoning Agent"]
+  VA{{"Validation Agent"}}
+  RG["Response Generator"]
+  MM["Memory Manager"]
+  End(["Response returned"])
+
+  Start --> ML --> QA
+  QA -->|"ambiguous"| CA
+  QA -->|"simple / complex"| RA
+  CA --> MM
+  RA -->|"simple"| RG
+  RA -->|"complex"| REA
+  REA -->|"confidence ≥ 0.7"| VA
+  REA -->|"0.5–0.7, first pass, out-of-distribution"| CA
+  REA -->|"0.5–0.7, retries left"| RA
+  REA -->|"below 0.5, or retries exhausted"| CA
+  VA -->|"passed"| RG
+  VA -->|"failed, retries left"| RA
+  VA -->|"failed, retries exhausted"| RG
+  RG --> MM --> End
+
+  classDef llm fill:#DCE9E1,stroke:#0E6B5A,color:#221C13,stroke-width:1.3px;
+  classDef tool fill:#EEE4CE,stroke:#6E6350,color:#221C13,stroke-width:1.3px;
+  classDef gate fill:#EFE1BE,stroke:#9A6B18,color:#221C13,stroke-width:1.3px;
+  classDef term fill:#0E6B5A,stroke:#093B31,color:#ffffff,stroke-width:1.3px;
+  class ML,RA,MM tool;
+  class CA,REA,RG llm;
+  class QA,VA gate;
+  class Start,End term;
+</pre>
+    </div>
+
+    <div class="diagram-frame reveal">
+<pre class="mermaid">
+flowchart LR
+  Q["Query"] --> BM["BM25\nsparse keyword search"]
+  Q --> V["FAISS\ndense search, MiniLM-L6-v2"]
+  BM --> RRF["Reciprocal Rank Fusion\nk = 60"]
+  V --> RRF
+  RRF --> CE["Cross-Encoder Rerank\nms-marco-MiniLM-L-6-v2"]
+  CE --> Top["Top-K chunks → Reasoning Agent"]
+
+  classDef step fill:#EEE4CE,stroke:#6E6350,color:#221C13,stroke-width:1.2px;
+  classDef out fill:#0E6B5A,stroke:#093B31,color:#ffffff,stroke-width:1.2px;
+  class Q,BM,V,RRF,CE step;
+  class Top out;
+</pre>
+    </div>
+
+    <div class="table-wrap reveal">
+      <table>
+        <thead><tr><th>From</th><th>Condition</th><th>Next</th></tr></thead>
+        <tbody>
+          <tr><td>Query Analyzer</td><td>ambiguous</td><td>Clarification Agent</td></tr>
+          <tr><td>Query Analyzer</td><td>simple / complex</td><td>Retrieval Agent</td></tr>
+          <tr><td>Retrieval Agent</td><td>simple</td><td>Response Generator</td></tr>
+          <tr><td>Retrieval Agent</td><td>complex</td><td>Reasoning Agent</td></tr>
+          <tr><td>Reasoning Agent</td><td>confidence ≥ 0.7</td><td>Validation Agent</td></tr>
+          <tr><td>Reasoning Agent</td><td>0.5–0.7, first pass, out-of-distribution</td><td>Clarification Agent</td></tr>
+          <tr><td>Reasoning Agent</td><td>0.5–0.7, retries left</td><td>Retrieval Agent (retry)</td></tr>
+          <tr><td>Reasoning Agent</td><td>below 0.5, or retries exhausted</td><td>Clarification Agent</td></tr>
+          <tr><td>Validation Agent</td><td>passed</td><td>Response Generator</td></tr>
+          <tr><td>Validation Agent</td><td>failed, retries left</td><td>Retrieval Agent (retry)</td></tr>
+          <tr><td>Validation Agent</td><td>failed, retries exhausted</td><td>Response Generator, with uncertainty note</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section" id="guardrails">
+    <div class="section-head reveal">
+      <span class="eyebrow">Guardrails</span>
+      <h2>Why it doesn't just make things up</h2>
+      <p>The thresholds and caps that decide when the system trusts itself, and when it stops to ask instead.</p>
+    </div>
+    <div class="stat-grid reveal">
+      <div class="stat-card blueprint"><span class="num">0.70</span><span class="label">Pass threshold</span><p>Confidence needed to skip straight to validation.</p></div>
+      <div class="stat-card blueprint"><span class="num">0.50</span><span class="label">Clarify floor</span><p>Below this, it asks rather than answers.</p></div>
+      <div class="stat-card blueprint"><span class="num">2</span><span class="label">Max retries</span><p>Retrieval gets reformulated and re-run, at most twice.</p></div>
+      <div class="stat-card blueprint"><span class="num">3</span><span class="label">Validation checks</span><p>Grounding, consistency, completeness: all three must pass.</p></div>
+      <div class="stat-card blueprint"><span class="num">2</span><span class="label">Fused retrievers</span><p>BM25 and FAISS, merged by reciprocal rank fusion, then reranked.</p></div>
+      <div class="stat-card blueprint"><span class="num">0.50</span><span class="label">OOD gate</span><p>Corpus similarity floor below which a query is treated as out-of-distribution.</p></div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="footer-top">
+      <div>
+        <span class="eyebrow" style="margin-bottom:.3rem;">Signal &amp; Gate</span>
+        <p style="margin:0;color:var(--ink-soft);font-size:.92rem;max-width:44ch;">A LangGraph multi-agent RAG pipeline: retrieval, reasoning, and validation, wired together with confidence-gated control flow.</p>
+      </div>
+      <nav class="footer-pages">
+        <a href="index.html">01 Overview</a>
+        <a href="architecture.html">02 Architecture</a>
+        <a href="dataset.html">03 Dataset &amp; Run It</a>
+      </nav>
+    </div>
+    <div class="footer-meta">
+      <span>Diagram reflects the actual <code>src/agent/graph.py</code> topology.</span>
+      <span><a href="https://github.com/vrhsr/veritas-agent" target="_blank" rel="noopener">github.com/vrhsr/veritas-agent</a></span>
+    </div>
+  </footer>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js"></script>
+<script>
+(function(){
+  if(window.mermaid){
+    window.mermaid.initialize({
+      startOnLoad:true,
+      securityLevel:'loose',
+      theme:'base',
+      themeVariables:{
+        background:'#F5EEE0',
+        fontFamily:'IBM Plex Mono, monospace',
+        textColor:'#221C13',
+        primaryTextColor:'#221C13',
+        secondaryTextColor:'#221C13',
+        tertiaryTextColor:'#221C13',
+        lineColor:'#8A7F63',
+        edgeLabelBackground:'#F5EEE0'
+      }
+    });
+  }
+})();
+(function(){
+  document.querySelectorAll('.reveal').forEach(function(el){
+    if(!('IntersectionObserver' in window)){ el.classList.add('in'); }
+  });
+  if('IntersectionObserver' in window){
+    var obsReveal = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){ entry.target.classList.add('in'); obsReveal.unobserve(entry.target); }
+      });
+    }, {threshold:0.12});
+    document.querySelectorAll('.reveal').forEach(function(el){ obsReveal.observe(el); });
+  }
+})();
+(function(){
+  var NODES = [
+    {id:'N1', title:'Memory Loader', line:'Pulls in what\'s already known before anything else runs.', detail:'Reads <code>session_id</code>, <code>original_query</code>. Writes <code>relevant_memories</code>: last 3 Redis turns plus a per-user FAISS semantic search (top 3, similarity ≥ 0.5). No LLM call.'},
+    {id:'N2', title:'Query Analyzer', line:'Classifies the question and fills reusable slots.', detail:'LLM call (JSON mode). Writes <code>query_type</code>, <code>intent_slots</code>, <code>named_entities</code>, <code>required_tools</code>, <code>complexity_score</code>. Slots persist to Redis across turns.'},
+    {id:'N3', title:'Retrieval Agent', line:'Gathers evidence: hybrid search plus tools.', detail:'No LLM call. Runs BM25 + FAISS + RRF + cross-encoder rerank, and conditionally web search, calculator, or document fetch based on <code>required_tools</code>. Reformulates the query on retry using <code>gaps</code>.'},
+    {id:'N4', title:'Reasoning Agent', line:'Breaks the question down and scores its own confidence.', detail:'LLM call. Decomposes into 2–5 sub-questions, answers each strictly from retrieved context, lists gaps, and self-rates <code>confidence</code> from 0 to 1.'},
+    {id:'N5', title:'Validation Agent', line:'Tries to find reasons the answer is wrong.', detail:'A separate, adversarial LLM call. Checks grounding, consistency, and completeness independently; all three must pass for <code>validation_passed</code> to be true.'},
+    {id:'N6', title:'Response Generator', line:'Writes the answer people actually read.', detail:'LLM call. Adds numbered citations, a confidence disclosure for borderline scores (0.70–0.75), and an uncertainty note if validation failed after max retries.'},
+    {id:'N7', title:'Clarification Agent', line:'Asks one sharp question instead of guessing.', detail:'LLM call. Generates a single binary or multiple-choice question, never an open-ended "can you clarify?", and pauses the graph (<code>awaiting_clarification: true</code>).'},
+    {id:'N8', title:'Memory Manager', line:'Remembers what\'s worth remembering.', detail:'Always logs the turn to Redis. If validation passed and confidence ≥ 0.7, extracts durable facts via a lightweight LLM call into the user\'s long-term FAISS memory.'}
+  ];
+  var grid = document.getElementById('nodeGrid');
+  grid.innerHTML = NODES.map(function(n){
+    return '<div class="node-card blueprint"><span class="idx">' + n.id + '</span><h3>' + n.title + '</h3><p>' + n.line + '</p><details><summary>Technical detail</summary><div class="detail">' + n.detail + '</div></details></div>';
+  }).join('');
+})();
+</script>
+</body>
+</html>

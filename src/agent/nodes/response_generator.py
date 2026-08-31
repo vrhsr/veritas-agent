@@ -17,7 +17,8 @@ from utils.cost import estimate_cost
 from utils.token_counter import count_tokens
 
 logger = get_logger(__name__)
-PROMPTS_DIR = Path(os.getenv("PROMPTS_DIR", "prompts/v1"))
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+PROMPTS_DIR = Path(os.getenv("PROMPTS_DIR", PROJECT_ROOT / "prompts/v1"))
 BORDERLINE_LOW = 0.7
 BORDERLINE_HIGH = 0.75
 

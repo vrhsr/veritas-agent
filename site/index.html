@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Signal &amp; Gate</title>
+  <meta name="description" content="A multi-agent RAG pipeline built on LangGraph: live scenario demos, full graph topology, guardrails, and a real sample dataset you can run yourself.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Ccircle cx='4' cy='10' r='2.6' fill='%230E6B5A'/%3E%3Ccircle cx='16' cy='4' r='2.6' fill='%23221C13'/%3E%3Ccircle cx='16' cy='16' r='2.6' fill='%23221C13'/%3E%3Cpath d='M6.3 8.7 13.7 5.1M6.3 11.3 13.7 14.9' stroke='%23221C13' stroke-width='1.3'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html">
+      <svg class="mark" viewBox="0 0 20 20" fill="none"><circle cx="4" cy="10" r="2.6" fill="#0E6B5A"/><circle cx="16" cy="4" r="2.6" fill="#221C13"/><circle cx="16" cy="16" r="2.6" fill="#221C13"/><path d="M6.3 8.7 13.7 5.1M6.3 11.3 13.7 14.9" stroke="#221C13" stroke-width="1.3"/></svg>
+      Signal &amp; Gate
+    </a>
+    <a class="btn" href="https://github.com/vrhsr/veritas-agent" target="_blank" rel="noopener">View on GitHub ↗</a>
+  </div>
+</div>
+
+<main>
+  <nav class="page-tabs" aria-label="Site sections">
+    <a class="page-tab" href="index.html" aria-current="page"><span class="n">01</span> Overview</a>
+    <a class="page-tab" href="architecture.html"><span class="n">02</span> Architecture</a>
+    <a class="page-tab" href="dataset.html"><span class="n">03</span> Dataset &amp; Run It</a>
+  </nav>
+
+  <section class="hero" id="top">
+    <div class="hero-grid">
+      <div class="hero-copy">
+        <span class="eyebrow">A multi-agent RAG pipeline</span>
+        <h1>It doesn't just<br>answer. It <em>checks itself</em>.</h1>
+        <p class="lede">Eight specialist agents pass one question hand to hand, retrieving evidence, scoring their own confidence, trying to prove each other wrong before anything reaches you.</p>
+        <div class="hero-ctas">
+          <a class="btn" href="#demo">Run the live walkthrough</a>
+          <a class="btn ghost" href="architecture.html">See the full graph</a>
+        </div>
+        <div class="hero-facts">
+          <div><strong>8</strong>agent nodes</div>
+          <div><strong>2</strong>fused retrieval strategies</div>
+          <div><strong>3</strong>independent validation checks</div>
+          <div><strong>2</strong>max self-correction retries</div>
+        </div>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <svg viewBox="0 0 360 340">
+          <path d="M40 70 L150 150" stroke="#D8C9A3" stroke-width="1.5"/>
+          <path class="pulse" d="M150 150 L280 60" stroke="#0E6B5A" stroke-width="1.6"/>
+          <path d="M280 60 L310 190" stroke="#D8C9A3" stroke-width="1.5"/>
+          <path class="pulse" d="M310 190 L200 270" stroke="#0E6B5A" stroke-width="1.6"/>
+          <path d="M200 270 L80 210" stroke="#D8C9A3" stroke-width="1.5"/>
+          <path d="M80 210 L40 70" stroke="#D8C9A3" stroke-width="1.5"/>
+          <path class="pulse" d="M150 150 L200 270" stroke="#9A6B18" stroke-width="1.4"/>
+          <circle cx="40" cy="70" r="9" fill="#221C13"/>
+          <circle cx="150" cy="150" r="11" fill="#0E6B5A"/>
+          <circle cx="280" cy="60" r="9" fill="#221C13"/>
+          <circle cx="310" cy="190" r="9" fill="#9A6B18"/>
+          <circle cx="200" cy="270" r="9" fill="#221C13"/>
+          <circle cx="80" cy="210" r="9" fill="#221C13"/>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-raised" id="demo">
+    <div class="section-head reveal">
+      <span class="eyebrow">Live Walkthrough</span>
+      <h2>Pick a question. Watch the pipeline reason through it.</h2>
+      <p>Four real paths through the graph: the simple lookup, the multi-step comparison, the one it refuses to guess at, and the one that catches its own mistake mid-flight.</p>
+    </div>
+
+    <div class="tabs reveal" role="tablist" id="tabs">
+      <button class="tab" role="tab" aria-selected="true" data-scenario="simple">Simple lookup</button>
+      <button class="tab" role="tab" aria-selected="false" data-scenario="complex">Multi-step comparison</button>
+      <button class="tab" role="tab" aria-selected="false" data-scenario="ambiguous">Too vague to guess</button>
+      <button class="tab" role="tab" aria-selected="false" data-scenario="retry">Self-correcting</button>
+    </div>
+
+    <div class="demo-panel blueprint reveal">
+      <div class="demo-query">
+        <div class="q"><span>Query: </span><span id="queryText">"What's our support SLA for enterprise-tier clients?"</span></div>
+        <div class="demo-actions">
+          <button class="btn small" id="runBtn">Run again</button>
+        </div>
+      </div>
+
+      <div class="stepper" id="stepper"></div>
+
+      <div class="demo-body">
+        <div class="console">
+          <div class="console-head">Agent Log</div>
+          <div class="console-lines" id="consoleLines"></div>
+        </div>
+        <div class="state-box">
+          <div class="console-head">State written</div>
+          <pre class="state-lines" id="stateLines"></pre>
+        </div>
+      </div>
+
+      <div class="answer-panel" id="answerPanel">
+        <div class="badge-row" id="badgeRow"></div>
+        <div class="answer-text" id="answerText"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="next">
+    <div class="section-head reveal">
+      <span class="eyebrow">Keep Going</span>
+      <h2>Two more pages worth your time</h2>
+    </div>
+    <div class="example-grid">
+      <a href="architecture.html" class="node-card reveal" style="text-decoration:none;display:block;">
+        <span class="idx">02 · Architecture</span>
+        <h3 style="color:var(--ink);">How it thinks, node by node</h3>
+        <p>The full 8-node graph, both diagrams, the exact routing rules, and every confidence threshold that decides what happens next.</p>
+      </a>
+      <a href="dataset.html" class="node-card reveal" style="text-decoration:none;display:block;">
+        <span class="idx">03 · Dataset &amp; Run It</span>
+        <h3 style="color:var(--ink);">The data underneath, and how to run it yourself</h3>
+        <p>Browse real corpus examples across all four document types, upload your own file to see it chunked live, and get the exact commands to run the full system on your machine.</p>
+      </a>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="footer-top">
+      <div>
+        <span class="eyebrow" style="margin-bottom:.3rem;">Signal &amp; Gate</span>
+        <p style="margin:0;color:var(--ink-soft);font-size:.92rem;max-width:44ch;">A LangGraph multi-agent RAG pipeline: retrieval, reasoning, and validation, wired together with confidence-gated control flow.</p>
+      </div>
+      <nav class="footer-pages">
+        <a href="index.html">01 Overview</a>
+        <a href="architecture.html">02 Architecture</a>
+        <a href="dataset.html">03 Dataset &amp; Run It</a>
+      </nav>
+    </div>
+    <div class="footer-meta">
+      <span>Diagram reflects the actual <code>src/agent/graph.py</code> topology.</span>
+      <span><a href="https://github.com/vrhsr/veritas-agent" target="_blank" rel="noopener">github.com/vrhsr/veritas-agent</a></span>
+    </div>
+  </footer>
+</main>
+
+<script>
+(function(){
+  document.querySelectorAll('.reveal').forEach(function(el){
+    if(!('IntersectionObserver' in window)){ el.classList.add('in'); return; }
+  });
+  if('IntersectionObserver' in window){
+    var obsReveal = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){ entry.target.classList.add('in'); obsReveal.unobserve(entry.target); }
+      });
+    }, {threshold:0.15});
+    document.querySelectorAll('.reveal').forEach(function(el){ obsReveal.observe(el); });
+  }
+})();
+(function(){
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var NODE_META = {
+    ML:{full:'Memory Loader', kind:'tool'},
+    QA:{full:'Query Analyzer', kind:'gate'},
+    RA:{full:'Retrieval Agent', kind:'tool'},
+    REA:{full:'Reasoning Agent', kind:'llm'},
+    VA:{full:'Validation Agent', kind:'gate'},
+    RG:{full:'Response Gen.', kind:'llm'},
+    CA:{full:'Clarification', kind:'llm'},
+    MM:{full:'Memory Manager', kind:'tool'}
+  };
+
+  var SCENARIOS = {
+    simple:{
+      query:'"What\'s our support SLA for enterprise-tier clients?"',
+      steps:[
+        {id:'ML', log:'Checking Redis and long-term memory for context on this session.', state:'relevant_memories: []'},
+        {id:'QA', log:'Classifying intent: this reads as a direct factual lookup.', state:'query_type: "simple"\nrequired_tools: []'},
+        {id:'RA', log:'Running hybrid retrieval (BM25 + FAISS + rerank) against the support-ops corpus.', state:'retrieved_chunks: 3 matched\ntop_score: 0.91'},
+        {id:'RG', log:'Simple path, skipping reasoning and validation. Writing the answer straight from the retrieved chunks.', state:'cited_sources: [1]'},
+        {id:'MM', log:'Logging the turn to short-term memory.', state:'(no long-term facts, nothing durable to extract)'}
+      ],
+      skipped:['REA','VA','CA'],
+      badges:[['pass','confidence 0.93'],['','retries 0']],
+      answer:'Enterprise-tier clients are guaranteed a <b>2-hour</b> first response and an <b>8-hour resolution</b> SLA on Priority-1 tickets.<span class="cite">[1]</span>'
+    },
+    complex:{
+      query:'"Compare our Q2 churn rate to Q1 and explain what\'s driving the change."',
+      steps:[
+        {id:'ML', log:'Loading prior turns: this session already discussed Q1 numbers.', state:'relevant_memories: ["user tracks churn quarter over quarter"]'},
+        {id:'QA', log:'This needs comparison and computation, flagging as complex, calculator required.', state:'query_type: "complex"\nrequired_tools: ["calculator"]'},
+        {id:'RA', log:'Hybrid retrieval for both quarters\' churn figures, plus a calculator pass for the delta.', state:'retrieved_chunks: 6 matched\ntool_used: "calculator"'},
+        {id:'REA', log:'Decomposing into sub-questions: Q1 rate, Q2 rate, likely drivers. Synthesizing.', state:'sub_questions: 3\nconfidence: 0.84'},
+        {id:'VA', log:'Adversarial check: grounding, consistency, completeness. All three pass.', state:'validation_passed: true'},
+        {id:'RG', log:'Writing the comparison with inline citations for each figure.', state:'cited_sources: [1, 2]'},
+        {id:'MM', log:'Confidence and validation both clear the bar, extracting a durable fact for next time.', state:'long_term_memory += "tracks churn QoQ"'}
+      ],
+      skipped:['CA'],
+      badges:[['pass','confidence 0.84'],['pass','validation passed'],['','retries 0']],
+      answer:'Q2 churn rose to <b>4.1%</b> from <b>3.3%</b> in Q1<span class="cite">[1]</span>. The increase tracks closely with a support-ticket backlog spike in the payments flow during May<span class="cite">[2]</span>.'
+    },
+    ambiguous:{
+      query:'"What\'s the status?"',
+      steps:[
+        {id:'ML', log:'Loading context: no clear subject carried over from the last turn either.', state:'relevant_memories: []'},
+        {id:'QA', log:'No entity, no timeframe, no metric to anchor this to. Flagging as ambiguous.', state:'query_type: "ambiguous"\nintent_slots: {}'},
+        {id:'CA', log:'Rather than guess, asking one targeted, answerable question.', state:'clarification_question: set\nawaiting_clarification: true'},
+        {id:'MM', log:'Logging the pending turn, no answer to store yet. The graph pauses here.', state:'final_answer: null'}
+      ],
+      skipped:['RA','REA','VA','RG'],
+      badges:[['warn','awaiting clarification']],
+      answer:'"Do you mean the status of a specific client\'s payment, a support ticket, or something else?"'
+    },
+    retry:{
+      query:'"Why did the Meridian account\'s payment fail last week?"',
+      steps:[
+        {id:'ML', log:'Loading context on the Meridian account from prior sessions.', state:'relevant_memories: ["Meridian is enterprise tier"]'},
+        {id:'QA', log:'Needs investigation across records, flagging complex.', state:'query_type: "complex"'},
+        {id:'RA', log:'First retrieval pass, pulling payment records for Meridian.', state:'retrieved_chunks: 4 matched (attempt 1)'},
+        {id:'REA', log:'Confidence too low to trust: the decline reason code itself is missing from context.', state:'confidence: 0.58\ngaps: ["decline reason code"]', retry:false},
+        {id:'RA', log:'Retrying with a reformulated, gap-focused query.', state:'query: "...[Focus on: decline reason code]"\nretrieved_chunks: 5 matched (attempt 2)', retry:true},
+        {id:'REA', log:'Second pass has the missing detail. Confidence clears the bar.', state:'confidence: 0.86', retry:true},
+        {id:'VA', log:'Grounding, consistency, completeness: all pass on the second attempt.', state:'validation_passed: true'},
+        {id:'RG', log:'Writing the answer, citing the decline-code record found on retry.', state:'cited_sources: [1]'},
+        {id:'MM', log:'Logging the resolved turn.', state:'retry_count: 1'}
+      ],
+      skipped:['CA'],
+      badges:[['pass','confidence 0.86'],['warn','1 retry used'],['pass','validation passed']],
+      answer:'The payment failed on a <b>soft decline (insufficient funds)</b> flagged by the processor, not a card or account issue. It cleared automatically on retry two days later.<span class="cite">[1]</span>'
+    }
+  };
+
+  var stepperEl = document.getElementById('stepper');
+  var consoleEl = document.getElementById('consoleLines');
+  var stateEl = document.getElementById('stateLines');
+  var answerEl = document.getElementById('answerPanel');
+  var answerTextEl = document.getElementById('answerText');
+  var badgeRowEl = document.getElementById('badgeRow');
+  var queryTextEl = document.getElementById('queryText');
+  var runBtn = document.getElementById('runBtn');
+  var tabs = document.querySelectorAll('.tab');
+
+  var currentId = 'simple';
+  var running = false;
+  var timers = [];
+
+  function clearTimers(){ timers.forEach(function(t){ clearTimeout(t); }); timers = []; }
+
+  function buildStepper(scenario){
+    stepperEl.innerHTML = '';
+    var seq = scenario.steps.slice();
+    var stepDivs = [];
+    seq.forEach(function(step, i){
+      if(i>0){
+        var conn = document.createElement('div');
+        conn.className = 'connector';
+        stepperEl.appendChild(conn);
+      }
+      var meta = NODE_META[step.id];
+      var div = document.createElement('div');
+      div.className = 'step ' + meta.kind;
+      div.innerHTML = '<div class="dot">' + step.id + (step.retry ? '<span class="retry-tag">2</span>' : '') + '</div><div class="name">' + meta.full + '</div>';
+      stepperEl.appendChild(div);
+      stepDivs.push(div);
+    });
+    (scenario.skipped||[]).forEach(function(id){
+      var conn = document.createElement('div');
+      conn.className = 'connector';
+      stepperEl.appendChild(conn);
+      var meta = NODE_META[id];
+      var div = document.createElement('div');
+      div.className = 'step skipped ' + meta.kind;
+      div.innerHTML = '<div class="dot">' + id + '</div><div class="name">skipped</div>';
+      stepperEl.appendChild(div);
+    });
+    return stepDivs;
+  }
+
+  function reset(scenario){
+    clearTimers();
+    consoleEl.innerHTML = '';
+    stateEl.textContent = '';
+    answerEl.classList.remove('show');
+    answerTextEl.innerHTML = '';
+    badgeRowEl.innerHTML = '';
+    queryTextEl.textContent = scenario.query;
+    return buildStepper(scenario);
+  }
+
+  function run(id){
+    if(running) return;
+    running = true;
+    currentId = id;
+    var scenario = SCENARIOS[id];
+    var stepDivs = reset(scenario);
+    var delay = reduced ? 0 : 200;
+    var gap = reduced ? 0 : 900;
+
+    scenario.steps.forEach(function(step, i){
+      timers.push(setTimeout(function(){
+        stepDivs.forEach(function(d,di){
+          d.classList.toggle('active', di===i);
+          if(di<i) d.classList.add('done');
+        });
+        var line = document.createElement('div');
+        line.className = 'ln';
+        line.textContent = step.log;
+        if(!reduced) line.style.animationDelay = '0s';
+        consoleEl.appendChild(line);
+        consoleEl.scrollTop = consoleEl.scrollHeight;
+        stateEl.textContent = step.state;
+      }, delay + i*gap));
+    });
+
+    timers.push(setTimeout(function(){
+      stepDivs.forEach(function(d){ d.classList.add('done'); });
+      badgeRowEl.innerHTML = scenario.badges.map(function(b){
+        return '<span class="badge ' + b[0] + '">' + b[1] + '</span>';
+      }).join('');
+      answerTextEl.innerHTML = scenario.answer;
+      answerEl.classList.add('show');
+      running = false;
+    }, delay + scenario.steps.length*gap + (reduced?0:300)));
+  }
+
+  tabs.forEach(function(tab){
+    tab.addEventListener('click', function(){
+      tabs.forEach(function(t){ t.setAttribute('aria-selected','false'); });
+      tab.setAttribute('aria-selected','true');
+      run(tab.getAttribute('data-scenario'));
+    });
+  });
+  runBtn.addEventListener('click', function(){ run(currentId); });
+
+  var demoSection = document.getElementById('demo');
+  var started = false;
+  if('IntersectionObserver' in window){
+    var obs = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting && !started){
+          started = true;
+          run('simple');
+        }
+      });
+    }, {threshold:0.4});
+    obs.observe(demoSection);
+  } else {
+    run('simple');
+  }
+})();
+</script>
+</body>
+</html>

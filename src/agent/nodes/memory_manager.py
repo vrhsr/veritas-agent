@@ -1,15 +1,4 @@
-"""
-Node 7: Memory Manager
-Runs after every successful response.
-Short-term: Redis (conversation history, TTL 24h)
-Long-term: FAISS (user facts, Q&A semantic cache, preferences)
-
-Key behaviors:
-- Per-user FAISS namespacing: user_id = session_id prefix (prevents cross-user leakage)
-- Selective LLM extraction: runs a lightweight LLM call to extract facts worth keeping,
-  rather than blindly storing the raw Q+A. This keeps long-term memory signal-dense.
-- Only stores validated, high-confidence answers (≥ 0.7).
-"""
+ 
 import time
 import os
 

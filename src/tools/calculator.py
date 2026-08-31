@@ -19,16 +19,7 @@ TRANSFORMATIONS = standard_transformations + (implicit_multiplication_applicatio
 
 
 def safe_calculate(expression: str) -> str:
-    """
-    Safely evaluates a mathematical expression using sympy.
-    Returns a string result or raises ValueError on invalid input.
-
-    Examples:
-        safe_calculate("2 + 2")          → "4"
-        safe_calculate("(1/60) * 100")   → "5/3"
-        safe_calculate("sqrt(144)")      → "12"
-        safe_calculate("sin(pi/2)")      → "1"
-    """
+    
     # Sanitize: only allow math characters
     allowed_chars = set("0123456789+-*/().^% abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_")
     sanitized = "".join(c for c in expression if c in allowed_chars).strip()

@@ -24,7 +24,8 @@ from utils.context_manager import build_context_within_budget
 from utils.ood_detector import is_out_of_distribution
 
 logger = get_logger(__name__)
-PROMPTS_DIR = Path(os.getenv("PROMPTS_DIR", "prompts/v1"))
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+PROMPTS_DIR = Path(os.getenv("PROMPTS_DIR", PROJECT_ROOT / "prompts/v1"))
 CONFIDENCE_PASS = float(os.getenv("CONFIDENCE_THRESHOLD_PASS", "0.7"))
 CONFIDENCE_CLARIFY = float(os.getenv("CONFIDENCE_THRESHOLD_CLARIFY", "0.5"))
 
